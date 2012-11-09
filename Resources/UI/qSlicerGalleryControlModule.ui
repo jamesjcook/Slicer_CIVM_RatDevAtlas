@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>632</width>
-    <height>687</height>
+    <width>526</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,166 +30,236 @@
         </property>
         <item>
          <property name="text">
-          <string>Time and Contrast</string>
+          <string>Time and Contrast (3x2)</string>
          </property>
          <property name="toolTip">
           <string extracomment="Timepoints x Contrasts"/>
          </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>GalleryType2</string>
+         <property name="icon">
+          <iconset>
+           <normalon>../Icons/GalleryControl.png</normalon>
+          </iconset>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>GalleryType3</string>
+          <string>Orthagonal Views</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>MultiContrast</string>
          </property>
         </item>
        </widget>
       </item>
+      <item>
+       <widget class="ctkExpandableWidget" name="DataSelection">
+        <widget class="ctkCollapsibleGroupBox" name="TimepointsGroupBox">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>50</y>
+           <width>111</width>
+           <height>201</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Timepoints</string>
+         </property>
+         <widget class="ctkCheckBox" name="_00">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>20</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>00</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_04">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>60</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>04</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_08">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>80</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>08</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_12">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>100</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>12</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_40">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>160</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>40</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_80">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>180</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>80</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_24">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>140</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>24</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_18">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>120</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>18</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="ctkCheckBox" name="_02">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>40</y>
+            <width>40</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>02</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string>TimepointButtonGroup</string>
+          </attribute>
+         </widget>
+         <widget class="QScrollBar" name="timepointsScrollbar">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>20</y>
+            <width>16</width>
+            <height>181</height>
+           </rect>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </widget>
+        <widget class="ctkCollapsibleGroupBox" name="ContrastGroupBox">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>50</y>
+           <width>111</width>
+           <height>201</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Contrasts</string>
+         </property>
+         <widget class="QScrollBar" name="contrastScrollBar">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>20</y>
+            <width>16</width>
+            <height>181</height>
+           </rect>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+      </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleGroupBox" name="Timepoints">
-     <property name="title">
-      <string>Timepoints</string>
-     </property>
-     <widget class="ctkCheckBox" name="_00">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>00</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_04">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>04</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_08">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>80</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>08</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_12">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>12</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_40">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>160</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>40</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_80">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>180</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>80</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_24">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>140</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>24</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_18">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>120</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>18</string>
-      </property>
-     </widget>
-     <widget class="ctkCheckBox" name="_02">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>619</width>
-        <height>18</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>02</string>
-      </property>
-     </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox">
-     <property name="title">
-      <string>GroupBox</string>
-     </property>
-     <widget class="ctkCheckBox" name="CheckBox">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-     </widget>
     </widget>
    </item>
    <item>
@@ -220,6 +290,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkExpandableWidget</class>
+   <extends>QFrame</extends>
+   <header>ctkExpandableWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
@@ -228,4 +304,7 @@
  </customwidgets>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="TimepointButtonGroup"/>
+ </buttongroups>
 </ui>
