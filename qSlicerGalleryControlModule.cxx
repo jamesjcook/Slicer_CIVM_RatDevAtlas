@@ -64,7 +64,7 @@ qSlicerGalleryControlModule::~qSlicerGalleryControlModule()
 //-----------------------------------------------------------------------------
 QString qSlicerGalleryControlModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension. Select a icon from the gallery list, then choose the datasets.";
+  return "This is a loadable module bundled in an extension.\nSelect a icon from the gallery list, then choose the datasets.\n";
 }
 
 //-----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ QString qSlicerGalleryControlModule::acknowledgementText()const
 QStringList qSlicerGalleryControlModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("James Cook (CIVM Duke University)");
+  moduleContributors << QString("James Cook (CIVM Duke University)\n");
   moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)-Template");
   return moduleContributors;
 }
@@ -91,7 +91,7 @@ QIcon qSlicerGalleryControlModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerGalleryControlModule::categories() const
 {
-  return QStringList() << "Examples";
+  return QStringList() << "Work in Progress";
 }
 
 //-----------------------------------------------------------------------------
