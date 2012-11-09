@@ -85,9 +85,6 @@
           <property name="text">
            <string>00</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_04">
           <property name="geometry">
@@ -101,9 +98,6 @@
           <property name="text">
            <string>04</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_08">
           <property name="geometry">
@@ -117,9 +111,6 @@
           <property name="text">
            <string>08</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_12">
           <property name="geometry">
@@ -133,9 +124,6 @@
           <property name="text">
            <string>12</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_40">
           <property name="geometry">
@@ -149,9 +137,6 @@
           <property name="text">
            <string>40</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_80">
           <property name="geometry">
@@ -165,9 +150,6 @@
           <property name="text">
            <string>80</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_24">
           <property name="geometry">
@@ -181,9 +163,6 @@
           <property name="text">
            <string>24</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_18">
           <property name="geometry">
@@ -197,9 +176,6 @@
           <property name="text">
            <string>18</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="ctkCheckBox" name="_02">
           <property name="geometry">
@@ -213,9 +189,6 @@
           <property name="text">
            <string>02</string>
           </property>
-          <attribute name="buttonGroup">
-           <string>TimepointButtonGroup</string>
-          </attribute>
          </widget>
          <widget class="QScrollBar" name="timepointsScrollbar">
           <property name="geometry">
@@ -304,7 +277,4 @@
  </customwidgets>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="TimepointButtonGroup"/>
- </buttongroups>
 </ui>
