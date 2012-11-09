@@ -77,7 +77,8 @@ QString qSlicerGalleryControlModule::acknowledgementText()const
 QStringList qSlicerGalleryControlModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)");
+  moduleContributors << QString("James Cook (CIVM Duke University)");
+  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)-Template");
   return moduleContributors;
 }
 
