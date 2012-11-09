@@ -64,7 +64,7 @@ qSlicerGalleryControlModule::~qSlicerGalleryControlModule()
 //-----------------------------------------------------------------------------
 QString qSlicerGalleryControlModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension";
+  return "This is a loadable module bundled in an extension. Select a icon from the gallery list, then choose the datasets.";
 }
 
 //-----------------------------------------------------------------------------
