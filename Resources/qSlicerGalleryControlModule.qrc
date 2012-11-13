@@ -1,5 +1,8 @@
-<!DOCTYPE RCC><RCC version="1.0">
+<RCC>
   <qresource>
+    <file>Icons/MultiContrast.tiff</file>
+    <file>Icons/Orthagonal.tiff</file>
     <file>Icons/GalleryControl.png</file>
+    <file>Icons/ThreeTimeTwoContrast.tiff</file>
   </qresource>
 </RCC>
