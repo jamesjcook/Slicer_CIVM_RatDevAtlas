@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>540</width>
-    <height>795</height>
+    <width>526</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,309 +15,356 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkExpandableWidget" name="ResizableFrame">
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+    <widget class="QFrame" name="ThumbnailSelectGroup">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QFrame" name="frame">
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QToolButton" name="toolButton">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>25</height>
-            </size>
-           </property>
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="text">
-            <string>Time and Contrast (3x2)</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normalon>:/Icons/ThreeTimeTwoContrast.tiff</normalon>
-            </iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>128</width>
-             <height>128</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextUnderIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="toolButton_3">
-           <property name="text">
-            <string>MultiContrast</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normalon>:/Icons/MultiContrast.tiff</normalon>
-            </iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>128</width>
-             <height>128</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextUnderIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="toolButton_2">
-           <property name="text">
-            <string>Orthagonal View</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normalon>:/Icons/GalleryControl.png</normalon>
-             <activeoff>:/Icons/Orthagonal.tiff</activeoff>
-            </iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>128</width>
-             <height>128</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextUnderIcon</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="ctkCollapsibleGroupBox" name="ImageSelectionGroupBox">
-        <property name="title">
-         <string>Time and Contrast selection</string>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QFrame" name="Timepoint_Frame">
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <widget class="ctkCheckBox" name="_00">
-              <property name="text">
-               <string>00</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_02">
-              <property name="text">
-               <string>02</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_04">
-              <property name="text">
-               <string>04</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_08">
-              <property name="text">
-               <string>08</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_12">
-              <property name="text">
-               <string>12</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_18">
-              <property name="text">
-               <string>18</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_24">
-              <property name="text">
-               <string>24</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_40">
-              <property name="text">
-               <string>40</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_80">
-              <property name="text">
-               <string>80</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string>buttonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QFrame" name="Contrast_Frame">
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <widget class="ctkCheckBox" name="_3">
-              <property name="text">
-               <string>ad</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_4">
-              <property name="text">
-               <string>adc</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_6">
-              <property name="text">
-               <string>b0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_5">
-              <property name="text">
-               <string>dwi</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_8">
-              <property name="text">
-               <string>fa</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_7">
-              <property name="text">
-               <string>freq</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_10">
-              <property name="text">
-               <string>rd</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="ctkCheckBox" name="_9">
-              <property name="text">
-               <string>rd</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>LoadData</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
+       <widget class="QToolButton" name="setTimeContrastLayoutButton">
+        <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>40</height>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
-       </spacer>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Time and Contrast (3x2)</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerGalleryControlModule.qrc">
+          <normaloff>:/Images/Icons/ThreeTimeTwoContrast.tiff</normaloff>:/Images/Icons/ThreeTimeTwoContrast.tiff</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>128</width>
+          <height>128</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextUnderIcon</enum>
+        </property>
+        <attribute name="buttonGroup">
+         <string>layoutButtons</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="setMultiContrastLayoutButton">
+        <property name="text">
+         <string>MultiContrast</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerGalleryControlModule.qrc">
+          <normaloff>:/Images/Icons/MultiContrast.tiff</normaloff>:/Images/Icons/MultiContrast.tiff</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>128</width>
+          <height>128</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextUnderIcon</enum>
+        </property>
+        <attribute name="buttonGroup">
+         <string>layoutButtons</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="setOrthagonalLayoutButton">
+        <property name="text">
+         <string>Orthagonal View</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../qSlicerGalleryControlModule.qrc">
+          <normaloff>:/Images/Icons/Orthagonal.tiff</normaloff>:/Images/Icons/Orthagonal.tiff</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>128</width>
+          <height>128</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextUnderIcon</enum>
+        </property>
+        <attribute name="buttonGroup">
+         <string>layoutButtons</string>
+        </attribute>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
+   <item>
+    <widget class="ctkCollapsibleGroupBox" name="ImageSelectionGroupBox">
+     <property name="title">
+      <string>Time and Contrast selection</string>
+     </property>
+     <property name="collapsed">
+      <bool>false</bool>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QFrame" name="Timepoint_Frame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="ctkCheckBox" name="_00">
+           <property name="text">
+            <string>00</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_02">
+           <property name="text">
+            <string>02</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_04">
+           <property name="text">
+            <string>04</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_08">
+           <property name="text">
+            <string>08</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_12">
+           <property name="text">
+            <string>12</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_18">
+           <property name="text">
+            <string>18</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_24">
+           <property name="text">
+            <string>24</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_40">
+           <property name="text">
+            <string>40</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_80">
+           <property name="text">
+            <string>80</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>TimePointsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="Contrast_Frame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="ctkCheckBox" name="_ad">
+           <property name="text">
+            <string>ad</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_adc">
+           <property name="text">
+            <string>adc</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_b0">
+           <property name="text">
+            <string>b0</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_dwi">
+           <property name="text">
+            <string>dwi</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_fa">
+           <property name="text">
+            <string>fa</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_freq">
+           <property name="text">
+            <string>freq</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_gre">
+           <property name="text">
+            <string>gre</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="_rd">
+           <property name="text">
+            <string>rd</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string>ConstrastButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="LoadDataButton">
+     <property name="text">
+      <string>LoadData</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="qSlicerGalleryControlModuleWidget" name="GalleryControlAbstractWidget" native="true"/>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
+  <action name="actionActiontext">
+   <property name="text">
+    <string>actiontext</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -332,24 +379,450 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkExpandableWidget</class>
-   <extends>QFrame</extends>
-   <header>ctkExpandableWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>qSlicerGalleryControlModuleWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">qSlicerGalleryControlModuleWidget.h</header>
+   <container>1</container>
+   <slots>
+    <signal>proWidgetAddSignal()</signal>
+    <slot>setOrthagonalLayout()</slot>
+    <slot>setMultiContrastLayout()</slot>
+    <slot>setTimeContrastLayout()</slot>
+    <slot>callPerlScriptAndLoadMRML()</slot>
+   </slots>
+  </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>setTimeContrastLayoutButton</tabstop>
+  <tabstop>setMultiContrastLayoutButton</tabstop>
+  <tabstop>setOrthagonalLayoutButton</tabstop>
+  <tabstop>ImageSelectionGroupBox</tabstop>
+  <tabstop>_00</tabstop>
+  <tabstop>_02</tabstop>
+  <tabstop>_04</tabstop>
+  <tabstop>_08</tabstop>
+  <tabstop>_12</tabstop>
+  <tabstop>_18</tabstop>
+  <tabstop>_24</tabstop>
+  <tabstop>_40</tabstop>
+  <tabstop>_80</tabstop>
+  <tabstop>_ad</tabstop>
+  <tabstop>_adc</tabstop>
+  <tabstop>_b0</tabstop>
+  <tabstop>_dwi</tabstop>
+  <tabstop>_fa</tabstop>
+  <tabstop>_freq</tabstop>
+  <tabstop>_gre</tabstop>
+  <tabstop>_rd</tabstop>
+  <tabstop>LoadDataButton</tabstop>
+ </tabstops>
  <resources>
   <include location="../qSlicerGalleryControlModule.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>setMultiContrastLayoutButton</sender>
+   <signal>released()</signal>
+   <receiver>GalleryControlAbstractWidget</receiver>
+   <slot>setMultiContrastLayout()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>272</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>244</x>
+     <y>655</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>setOrthagonalLayoutButton</sender>
+   <signal>released()</signal>
+   <receiver>GalleryControlAbstractWidget</receiver>
+   <slot>setOrthagonalLayout()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>466</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>244</x>
+     <y>655</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>setTimeContrastLayoutButton</sender>
+   <signal>released()</signal>
+   <receiver>GalleryControlAbstractWidget</receiver>
+   <slot>setTimeContrastLayout()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>244</x>
+     <y>655</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>LoadDataButton</sender>
+   <signal>released()</signal>
+   <receiver>GalleryControlAbstractWidget</receiver>
+   <slot>callPerlScriptAndLoadMRML()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>249</x>
+     <y>496</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>270</x>
+     <y>655</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>setTimeContrastLayoutButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ImageSelectionGroupBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>124</x>
+     <y>148</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>111</x>
+     <y>220</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>setMultiContrastLayoutButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ImageSelectionGroupBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>273</x>
+     <y>116</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>198</x>
+     <y>220</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>setOrthagonalLayoutButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ImageSelectionGroupBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>466</x>
+     <y>155</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>387</x>
+     <y>226</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_00</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>261</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>175</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_02</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>156</x>
+     <y>286</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>127</x>
+     <y>512</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_04</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>95</x>
+     <y>309</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>127</x>
+     <y>513</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_08</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>101</x>
+     <y>322</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>507</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_12</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>91</x>
+     <y>352</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>130</x>
+     <y>497</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_18</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>112</x>
+     <y>379</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>124</x>
+     <y>499</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_24</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>387</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>500</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_40</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>123</x>
+     <y>411</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>121</x>
+     <y>512</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_80</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>447</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>513</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_ad</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>424</x>
+     <y>263</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>297</x>
+     <y>516</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_b0</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>321</x>
+     <y>289</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>506</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_adc</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>312</x>
+     <y>275</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>297</x>
+     <y>507</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_dwi</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>300</x>
+     <y>323</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>297</x>
+     <y>505</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_fa</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>333</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>514</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_freq</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>298</x>
+     <y>364</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>300</x>
+     <y>503</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_gre</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>302</x>
+     <y>384</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_rd</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>LoadDataButton</receiver>
+   <slot>setOn(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>307</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>521</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>setDataToLoad()</signal>
+  <signal>setLayout()</signal>
+ </slots>
  <buttongroups>
-  <buttongroup name="buttonGroup">
+  <buttongroup name="layoutButtons"/>
+  <buttongroup name="ConstrastButtonGroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="TimePointsButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>

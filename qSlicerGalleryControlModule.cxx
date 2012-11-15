@@ -17,6 +17,7 @@
 
 // Qt includes
 #include <QtPlugin>
+#include <QTextStream>
 
 // GalleryControl Logic includes
 #include <vtkSlicerGalleryControlLogic.h>
@@ -25,6 +26,7 @@
 #include "qSlicerGalleryControlModule.h"
 #include "qSlicerGalleryControlModuleWidget.h"
 
+//qSlicerGalleryControlModlue, class code
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerGalleryControlModule, qSlicerGalleryControlModule);
 
@@ -47,8 +49,8 @@ qSlicerGalleryControlModulePrivate
 
 //-----------------------------------------------------------------------------
 // qSlicerGalleryControlModule methods
-
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+//constructor
 qSlicerGalleryControlModule
 ::qSlicerGalleryControlModule(QObject* _parent)
   : Superclass(_parent)
@@ -56,65 +58,92 @@ qSlicerGalleryControlModule
 {
 }
 
+
 //-----------------------------------------------------------------------------
+//destructor
 qSlicerGalleryControlModule::~qSlicerGalleryControlModule()
 {
+  
 }
 
+
+
 //-----------------------------------------------------------------------------
+//helptext
 QString qSlicerGalleryControlModule::helpText()const
 {
-  return "This is a loadable module bundled in an extension.\nSelect a icon from the gallery list, then choose the datasets.\n";
+  return "This is a loadable module bundled in an extension. Select a icon from the gallery list, then choose the datasets.\n";
 }
 
 //-----------------------------------------------------------------------------
+//acknowledgetext
 QString qSlicerGalleryControlModule::acknowledgementText()const
 {
   return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
 }
 
 //-----------------------------------------------------------------------------
+//contributorstext
 QStringList qSlicerGalleryControlModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("James Cook (CIVM Duke University)\n");
-  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)-Template");
+  moduleContributors << QString("James Cook (CIVM Duke University), ");
+  moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)-Template");//default, added -template
   return moduleContributors;
 }
 
 //-----------------------------------------------------------------------------
+//set icon
 QIcon qSlicerGalleryControlModule::icon()const
 {
-  return QIcon(":/Icons/GalleryControl.png");
+  return QIcon(":/Icons/GalleryControl.tiff");
 }
 
 //-----------------------------------------------------------------------------
+//set catagory in slicer menu
 QStringList qSlicerGalleryControlModule::categories() const
 {
   return QStringList() << "Work in Progress";
 }
 
 //-----------------------------------------------------------------------------
+//set module dependencies, not sure how to do this one 
 QStringList qSlicerGalleryControlModule::dependencies() const
 {
   return QStringList();
 }
 
 //-----------------------------------------------------------------------------
+//called on module start
 void qSlicerGalleryControlModule::setup()
 {
+  //  QTextStream out(stdout);
+  //  out << "qSLicerGalleryControlModule SETUP RUN\n";
+  this->printMethod(QString("setup"));
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerGalleryControlModule
-::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation* qSlicerGalleryControlModule::createWidgetRepresentation()
 {
+  //  QTextStream out(stdout);
+  //  out << "createWidgetRepresentation\n";
+  this->printMethod(QString("createWidgetRepresentation"));
   return new qSlicerGalleryControlModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
 vtkMRMLAbstractLogic* qSlicerGalleryControlModule::createLogic()
 {
+  //  QTextStream out(stdout);
+  //  out << "createLogic Start\n";
+  this->printMethod(QString("createLogic"));
   return vtkSlicerGalleryControlLogic::New();
+}
+
+void qSlicerGalleryControlModule::printMethod(const QString text)
+{
+  QTextStream out(stdout);
+  out << "qSlicerGalleyControlModule method:"<<text<<"\n";
+  return;
 }

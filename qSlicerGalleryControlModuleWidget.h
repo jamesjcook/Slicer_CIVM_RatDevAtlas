@@ -27,8 +27,7 @@ class qSlicerGalleryControlModuleWidgetPrivate;
 class vtkMRMLNode;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class Q_SLICER_QTMODULES_GALLERYCONTROL_EXPORT qSlicerGalleryControlModuleWidget :
-  public qSlicerAbstractModuleWidget
+class Q_SLICER_QTMODULES_GALLERYCONTROL_EXPORT qSlicerGalleryControlModuleWidget :  public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
 
@@ -37,9 +36,13 @@ public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerGalleryControlModuleWidget(QWidget *parent=0);
   virtual ~qSlicerGalleryControlModuleWidget();
-
+  void printMethod(QString);
 public slots:
 
+  bool setTimeContrastLayout();
+  bool setMultiContrastLayout();
+  bool setOrthagonalLayout();
+  void callPerlScriptAndLoadMRML();
 
 protected:
   QScopedPointer<qSlicerGalleryControlModuleWidgetPrivate> d_ptr;

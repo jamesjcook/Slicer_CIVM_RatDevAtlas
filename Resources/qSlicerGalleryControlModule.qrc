@@ -1,5 +1,5 @@
 <RCC>
-  <qresource>
+  <qresource prefix="Images">
     <file>Icons/MultiContrast.tiff</file>
     <file>Icons/Orthagonal.tiff</file>
     <file>Icons/GalleryControl.png</file>

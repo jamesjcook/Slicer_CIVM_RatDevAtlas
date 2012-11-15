@@ -22,7 +22,7 @@
 #include "qSlicerLoadableModule.h"
 
 #include "qSlicerGalleryControlModuleExport.h"
-
+//qSlicerGalleryControlModlue, class definition
 class qSlicerGalleryControlModulePrivate;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -49,7 +49,8 @@ public:
 
   virtual QStringList categories()const;
   virtual QStringList dependencies() const;
-
+  void printMethod(QString);
+  
 protected:
 
   /// Initialize the module. Register the volumes reader/writer
