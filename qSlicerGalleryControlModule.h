@@ -49,6 +49,11 @@ public:
 
   virtual QStringList categories()const;
   virtual QStringList dependencies() const;
+
+  //these state variable should probably be private but again, we'll just do another for now.
+/*   virtual QStringList checkboxes(QString ); // variable to hold on to the check boxes which are checked, just doing a simple string list for now */
+/*   // some other data container would probbaly be better, but this works for now.  */
+/*   virtual QString MRMLLayout(); */
   void printMethod(QString);
   
 protected:

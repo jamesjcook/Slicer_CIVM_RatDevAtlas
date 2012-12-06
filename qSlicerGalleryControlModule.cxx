@@ -66,22 +66,18 @@ qSlicerGalleryControlModule::~qSlicerGalleryControlModule()
   
 }
 
-
-
 //-----------------------------------------------------------------------------
 //helptext
 QString qSlicerGalleryControlModule::helpText()const
 {
   return "This is a loadable module bundled in an extension. Select a icon from the gallery list, then choose the datasets.\n";
 }
-
 //-----------------------------------------------------------------------------
 //acknowledgetext
 QString qSlicerGalleryControlModule::acknowledgementText()const
 {
   return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
 }
-
 //-----------------------------------------------------------------------------
 //contributorstext
 QStringList qSlicerGalleryControlModule::contributors()const
@@ -91,21 +87,18 @@ QStringList qSlicerGalleryControlModule::contributors()const
   moduleContributors << QString("Jean-Christophe Fillion-Robin (Kitware)-Template");//default, added -template
   return moduleContributors;
 }
-
 //-----------------------------------------------------------------------------
 //set icon
 QIcon qSlicerGalleryControlModule::icon()const
 {
   return QIcon(":/Icons/GalleryControl.tiff");
 }
-
 //-----------------------------------------------------------------------------
-//set catagory in slicer menu
+//set category in slicer menu
 QStringList qSlicerGalleryControlModule::categories() const
 {
   return QStringList() << "Work in Progress";
 }
-
 //-----------------------------------------------------------------------------
 //set module dependencies, not sure how to do this one 
 QStringList qSlicerGalleryControlModule::dependencies() const
@@ -147,3 +140,18 @@ void qSlicerGalleryControlModule::printMethod(const QString text)
   out << "qSlicerGalleyControlModule method:"<<text<<"\n";
   return;
 }
+
+
+// QStringList qSlicerGalleryControlModule::checkboxes() // variable to hold on to the check boxes which are checked, just doing a simple string list for now
+// {
+//   this->printMethod(QString("checkboxes"));
+//   QStringList checkboxes_("");
+//   return checkboxes_;
+// }
+//   // some other data container would probbaly be better, but this works for now. 
+// QString qSlicerGalleryControlModule::MRMLLayout()
+// {
+//   this->printMethod(QString("MRMLLayout"));
+//   QString layoutname("Three over Three");
+//   return layoutname;
+// }
