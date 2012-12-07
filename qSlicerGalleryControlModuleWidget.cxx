@@ -23,6 +23,31 @@
 #include "qSlicerGalleryControlModuleWidget.h"
 #include "ui_qSlicerGalleryControlModule.h"
 
+//#include "qSlicerCoreApplication.h"
+#include "qSlicerCoreIOManager.h"
+#include "vtkMRMLScene.h"
+#include "vtkMRMLCoreTestingMacros.h"
+#include "qSlicerIOManager.h"
+ #include "qSlicerFileReader.h"
+
+ #include "qSlicerApplication.h"
+ #include "qSlicerAbstractModule.h"
+ //#include "qSlicerAppAboutDialog.h"
+ #include "qSlicerActionsDialog.h"
+ #include "qSlicerApplication.h"
+ #include "qSlicerIOManager.h"
+ #include "qSlicerLayoutManager.h"
+ //#include "qSlicerAppMainWindowCore_p.h"
+ #include "qSlicerModuleManager.h"
+
+#include "qSlicerSlicer2SceneReader.h"
+
+// #include "Modules/Loadable/Data/qSlicerSceneIO.h"
+
+//cmdline includes
+//# include "tclap/CmdLine.h"
+
+
 
 //qSlicerGalleryControlModlueWidget, class code
 //-----------------------------------------------------------------------------
@@ -68,7 +93,7 @@ void qSlicerGalleryControlModuleWidget::setup()
   Q_D(qSlicerGalleryControlModuleWidget);
   d->setupUi(this);
   int elements=0;
-  this->layout=QString("No Layout");
+  this->layout=QString("No_Layout");
   this->gallery_timepoints=0;
   this->gallery_contrasts=0;
 
@@ -135,7 +160,7 @@ void qSlicerGalleryControlModuleWidget::setTimeContrastLayout()
   //  QTextStream out(stdout);
   //  out << "Signalclicked for toolbutton time contrast";
   this->printMethod(QString("TCLayout"));
-  layout=QString("timecontrast");
+  layout=QString("time_contrast");
   gallery_timepoints=3;
   gallery_contrasts=2;
   this->printMethod("Setting layout" +layout +"t="+QString::number(this->gallery_timepoints) + "c=" +QString::number(this->gallery_contrasts));
@@ -223,31 +248,76 @@ void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML()
 //   status_code=d->t_00->isChecked();//no longer neeeded
 //  QString status_message = "Status=" + QString::number(status_code) + " State=" + QString::number(state_check);
 
-//somehow call console application and retrun the mrml file we need to load...
-//qSlicerApplication::application()->ioManager()->openLoadSceneDialog();// change dialog to just add the scene.
-  
+  //get chekcboxes and clean up and split the strings   
   QString time_string     =this->getTimepoints();
-  QString contrast_string =this-> getContrasts();
-  QString command         = QString("perl call") + " -c " + contrast_string + " -t " + time_string  + " ";
+  QString contrast_string =this->getContrasts();
+
+//   if ( layout == "time_contrast") {
+//   } else if(layout  == "")  { 
+//   } else if(layout  == "")  { 
+//   } else if ( layout == "No_Layout"){
+//   }
+  QString perl_program    = QString("slicer_generate") + "_" + layout + ".pl" ;
+  QString perl_prefix = "/usr/bin/perl /Users/james/svnworkspaces/slicer_generate_mrml_via_template/";
+  QString out_path = QString("/tmp/") + layout + time_string + contrast_string + ".mrml";
+  //  QString out_path = QString("/tmp/") + layout+ ".mrml";
+  QString command  = perl_prefix + 
+    perl_program + 
+    " -c " + contrast_string + 
+    " -t " + time_string  + 
+    " -o " + out_path ;
   this->printText(command);
-  this->printText(layout);
-  this->printText(QString::number(gallery_timepoints));
-  this->printText(QString::number(gallery_contrasts));
-  this->printText(QString::number(timepoints[40]));
-  this->printText(QString::number(timepoints[80]));
-
+  //   this->printText(layout);
+  //   this->printText(QString::number(gallery_timepoints));
+  //   this->printText(QString::number(gallery_contrasts));
+  //   this->printText(QString::number(timepoints[40]));
+  //   this->printText(QString::number(timepoints[80]));
+  
   //this -> variable works same as without
-  //    this->printText(layout);
-  //    this->printText(QString::number(this->gallery_timepoints));
-  //    this->printText(QString::number(this->gallery_contrasts));
-  //    this->printText(QString::number(this->timepoints[40]));
-  //    this->printText(QString::number(this->timepoints[80]));
-  
+  //   this->printText(layout);
+  //   this->printText(QString::number(this->gallery_timepoints));
+  //   this->printText(QString::number(this->gallery_contrasts));
+  //   this->printText(QString::number(this->timepoints[40]));
+  //   this->printText(QString::number(this->timepoints[80]));
+
 
   
-  //get mrmlscene to use
-  //get chekcboxes and clean up and split the strings 
-  //do sort unique on it, then split, then based on the mrml only pass the correct number of data points to perl
+  //somehow call console application and retrun the mrml file we need to load...
+  // call command
+  const char* myCommand = command.toStdString().c_str();
+  system(myCommand);  
+  const QString op = out_path;
+
+  bool status = false;
+  
+
+  // load mrmlscene 
+  qSlicerIO::IOProperties properties;
+  properties["fileName"]=out_path;
+  properties["clear"]=true;
+
+
+  /* does not seem to be working.NOt sure why not it appears as if i'm using this correctly. */
+//   qSlicerCoreIOManager* sload;
+//   status=sload->loadScene(op, true); // scene1, out_path); //, true);
+//   status=sload->loadNodes(QString("SceneFile"),properties);
+
+/* fails in crash
+  //qSlicerSlicer2SceneReader* reader= new qSlicerSlicer2SceneReader();
+  //reader->load(properties);*/
+  
+  //slicerdevel example
+  qSlicerApplication * app = qSlicerApplication::application();
+  app->ioManager()->loadScene(out_path);
+
+
+  if ( status )  {
+    this->printText(QString("Load Success"));
+  } else { 
+    this->printText(QString("Load Failed"));
+  }
+  //qSlicerApplication::application()->ioManager()->openLoadSceneDialog();// change dialog to just add the scene.
+  // doesnt workqSlicerApplication::application()->ioManager()->openLoadSceneDialog(out_path);// change dialog to just add the scene.
     
   return;
 }
@@ -294,11 +364,12 @@ QString qSlicerGalleryControlModuleWidget::getTimepoints()
     if ( timepoints[i] == 1 && timepoints_found < this->gallery_timepoints ) {
       this->printText("checking timepoint"+ QString::number(i)+" match <"+QString::number(timepoints[i])+">");      
       //      QString num= QString("%1").arg(i,2,0,QChar('0')).toUpper();
-      QString num = QString::number(i);
+      QString num = QString("%1").arg(i, 2, 10, QChar('0')).toUpper();
+      //      QString num = QString::number(i);
       outtimepoints = outtimepoints + num + "," ;
       timepoints_found++;
     } else { 
-      this->printText("checking timepoint"+ QString::number(i)+" nomatch <"+QString::number(timepoints[i])+">");
+      //      this->printText("checking timepoint"+ QString::number(i)+" nomatch <"+QString::number(timepoints[i])+">");
     }
   }
 
@@ -351,7 +422,7 @@ QString qSlicerGalleryControlModuleWidget::getContrasts()
       outcontrasts = outcontrasts + num + "," ;
       contrasts_found++;
     } else { 
-      this->printText("checking contrast"+ QString::number(i)+" nomatch <"+QString::number(contrasts[i])+">");
+      //      this->printText("checking contrast"+ QString::number(i)+" nomatch <"+QString::number(contrasts[i])+">");
     }
   }
 
