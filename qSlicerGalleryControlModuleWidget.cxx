@@ -308,7 +308,7 @@ void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML()
   
   //slicerdevel example
   qSlicerApplication * app = qSlicerApplication::application();
-  app->ioManager()->loadScene(out_path);
+  status=app->ioManager()->loadScene(out_path);
 
 
   if ( status )  {
