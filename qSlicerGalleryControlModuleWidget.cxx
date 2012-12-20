@@ -18,34 +18,90 @@
 // Qt includes
 #include <QDebug>
 #include <QSignalMapper>
+#include <QFileInfo>
 
 // SlicerQt includes
 #include "qSlicerGalleryControlModuleWidget.h"
 #include "ui_qSlicerGalleryControlModule.h"
 
 //#include "qSlicerCoreApplication.h"
+#include "qSlicerApplication.h"
 #include "qSlicerCoreIOManager.h"
+#include "qSlicerIOManager.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLCoreTestingMacros.h"
-#include "qSlicerIOManager.h"
- #include "qSlicerFileReader.h"
 
- #include "qSlicerApplication.h"
- #include "qSlicerAbstractModule.h"
- //#include "qSlicerAppAboutDialog.h"
- #include "qSlicerActionsDialog.h"
- #include "qSlicerApplication.h"
- #include "qSlicerIOManager.h"
- #include "qSlicerLayoutManager.h"
- //#include "qSlicerAppMainWindowCore_p.h"
- #include "qSlicerModuleManager.h"
+#include "qSlicerFileReader.h"
 
-#include "qSlicerSlicer2SceneReader.h"
+
+#include "qSlicerAbstractModule.h"
+//#include "qSlicerAppAboutDialog.h"
+#include "qSlicerActionsDialog.h"
+#include "qSlicerLayoutManager.h"
+
+//#include "qSlicerAppMainWindowCore_p.h"
+#include "qSlicerModuleManager.h"
+//#include "qSlicerSlicer2SceneReader.h"
 
 // #include "Modules/Loadable/Data/qSlicerSceneIO.h"
 
 //cmdline includes
 //# include "tclap/CmdLine.h"
+
+
+#include  <Modules/Loadable/Volumes/qSlicerVolumesIO.h>
+
+
+
+
+
+
+// Qt includes
+#include <QFileDialog>
+#include <QFileSystemWatcher>
+
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerIOManager.h"
+
+// vtkSlicerLogic includes
+#include "vtkSlicerTransformLogic.h"
+
+// MRMLWidgets includes
+#include <qMRMLUtils.h>
+
+// MRML includes
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLAnnotationHierarchyNode.h"
+#include "vtkMRMLAnnotationFiducialNode.h"
+#include "vtkMRMLFiducial.h"
+#include "vtkMRMLFiducialListNode.h"
+#include "vtkMRMLFiducialListStorageNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLScene.h"
+#include "vtkMRMLDisplayNode.h"
+#include "vtkMRMLModelDisplayNode.h"
+
+// VTK includes
+#include <vtkCallbackCommand.h>
+#include "vtkPolyData.h"
+#include <vtkLineSource.h>
+#include <vtkSphereSource.h>
+#include <vtkCylinderSource.h>
+#include <vtkCellArray.h>
+#include <vtkMath.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <vtkNew.h>
+#include "vtkCollection.h"
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
+#include "vtkSTLReader.h"
+#include "vtkContourFilter.h"
+#include "vtkPolyDataNormals.h"
+#include <vtkExodusIIReader.h>
+
+
 
 
 
@@ -64,7 +120,7 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerGalleryControlModuleWidgetPrivate::qSlicerGalleryControlModuleWidgetPrivate()
 {
-  //  this->printMethod(QString("private call"));// doesnt work, not a method...
+  //  this->PrintMethod(QString("private call"));// doesnt work, not a method...
 }
 
 //-----------------------------------------------------------------------------
@@ -76,43 +132,56 @@ qSlicerGalleryControlModuleWidget::qSlicerGalleryControlModuleWidget(QWidget* _p
   : Superclass( _parent )
   , d_ptr( new qSlicerGalleryControlModuleWidgetPrivate )
 {
-  this->printMethod(QString("constructor"));
+  this->PrintMethod(QString("constructor"));
 }
 
 //-----------------------------------------------------------------------------
 //destructor
 qSlicerGalleryControlModuleWidget::~qSlicerGalleryControlModuleWidget()
 {
-  this->printMethod(QString("destructor"));
+  this->PrintMethod(QString("destructor"));
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerGalleryControlModuleWidget::setup()
 {
-  this->printMethod(QString("setup"));
+  this->PrintMethod(QString("setup"));
   Q_D(qSlicerGalleryControlModuleWidget);
   d->setupUi(this);
   int elements=0;
-  this->layout=QString("No_Layout");
-  this->gallery_timepoints=0;
-  this->gallery_contrasts=0;
+  this->Layout=QString("No_Layout");
+  this->GalleryTimepoints=0;
+  this->GalleryContrasts=0;
+  this->GalleryOrientations=0;
+  this->LoadLabels=false;
+  elements=(sizeof(Timepoints)/sizeof(bool));
+  for(int i=0;i<elements;i++) {
+    this->Timepoints[i]=0;
+  }
+  elements=(sizeof(Contrasts)/sizeof(bool));
+  for(int i=0;i<elements;i++) {
+    Contrasts[i]=0;
+  }
 
-  elements=(sizeof(timepoints)/sizeof(bool));
-  for(int i=0;i<elements;i++) {
-    this->timepoints[i]=0;
-  }
-  elements=(sizeof(contrasts)/sizeof(bool));
-  for(int i=0;i<elements;i++) {
-    contrasts[i]=0;
-  }
+  /* Load data paths */
+  /* hardcode for now*/
+  /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+  /* labels are at /DataPath/labels/completed/completed_good_header/nii/           */
+  this->DataPath=QString("/Volumes/sandbox/devatlas");
+  this->LabelPath=QString(DataPath+"/labels/completed/completed_good_header/nii/");
+  //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
+  //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
+  this->DataPattern  =QString("ptimepoint_average_contrast.nii");
+  this->LabelPattern =QString("pndtimepoint_average_labels.nii");
+  
 
   // these connections were setup in the *.ui file, but that seems to have been broken
   /*  connect(d->setTimeContrastLayoutButton, SIGNAL(released()),
-	  this, SLOT(setTimeContrastLayout()));
-  connect(d->setOrthagonalLayoutButton, SIGNAL(released()), 
-	  this, SLOT(setOrthagonalLayout()));
-  connect(d->setMultiContrastLayoutButton, SIGNAL(released()), 
-  this, SLOT(setMultiContrastLayout()));*/
+	  this, SLOT(SetTimeContrastLayout()));
+  connect(d->SetOrthagonalLayoutButton, SIGNAL(released()), 
+	  this, SLOT(SetOrthagonalLayout()));
+  connect(d->SetMultiContastLayoutButton, SIGNAL(released()), 
+  this, SLOT(SetMultiContastLayout()));*/
   QSignalMapper* signalMapper;
 
   signalMapper = new QSignalMapper(this);
@@ -130,102 +199,240 @@ void qSlicerGalleryControlModuleWidget::setup()
   signalMapper, SLOT (map()));*/
 
   //  this works so long as we dont try to connect in QtDesigner
-  /*  connect(d->t_02, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_04, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_08, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_12, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_18, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_24, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_40, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
-  connect(d->t_80, SIGNAL(toggled(bool)), SLOT(setCheckBox()));
+  /*  connect(d->t_02, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_04, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_08, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_12, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_18, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_24, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_40, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+  connect(d->t_80, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
   */
 
   /*  if (d->t_00->isChecked()) {; //just test setting of the checkbox
-    printMethod(QString("checktrue"));
+    PrintMethod(QString("checktrue"));
     }*/
+  d->orientationComboBox->setEnabled(false);
 
-  connect(d->setTimeContrastLayoutButton, SIGNAL(pressed()), SLOT(setTimeContrastLayout()));
-  connect(d->setMultiContrastLayoutButton, SIGNAL(pressed()), SLOT(setMultiContrastLayout()));
-  connect(d->setOrthagonalLayoutButton, SIGNAL(pressed()), SLOT(setOrthagonalLayout()));
-  connect(d->LoadDataButton, SIGNAL(released()), SLOT(callPerlScriptAndLoadMRML()));
+  connect(d->DatasetLabelsOn, SIGNAL(clicked()), SLOT(SetLabels()));
+  connect(d->setTimeContrastLayoutButton, SIGNAL(clicked()), SLOT(SetTimeContrastLayout()));
+  connect(d->setMultiContrastLayoutButton, SIGNAL(clicked()), SLOT(SetMultiContrastLayout()));
+  connect(d->setOrthagonalLayoutButton, SIGNAL(clicked()), SLOT(SetOrthagonalLayout()));
+
+  //  connect(d->LoadDataButton, SIGNAL(released()), SLOT(CallPerlScriptAndLoadMRML()));
+  connect(d->LoadDataButton, SIGNAL(released()), SLOT(BuildScene()));
   this->Superclass::setup();
 }
 
 
 
-void qSlicerGalleryControlModuleWidget::setTimeContrastLayout() 
+void qSlicerGalleryControlModuleWidget::SetTimeContrastLayout() 
 {
-  //  this->printMethod();
-  //  Q_D(qSlicerGalleryControlModuleWidget); //i think the Q_D line connects us back to our parent widget
-  //  QTextStream out(stdout);
-  //  out << "Signalclicked for toolbutton time contrast";
-  this->printMethod(QString("TCLayout"));
-  layout=QString("time_contrast");
-  gallery_timepoints=3;
-  gallery_contrasts=2;
-  this->printMethod("Setting layout" +layout +"t="+QString::number(this->gallery_timepoints) + "c=" +QString::number(this->gallery_contrasts));
-  //return d->selectModule("SampleData");//Layout();
-  //return;
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(true);
+  this->Layout=QString("time_contrast");
+  this->GalleryTimepoints=3;
+  this->GalleryContrasts=2;
+  this->GalleryOrientations=1;
+  
+  this->PrintMethod(QString("TCLayout"));
+  this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
   return ;
-  //    this->Superclass::connect(&TimeXContrastButton,SIGNAL(clicked()),out << "Signalclicked for toolbutton",SLOT(update()));
 }
 
-void qSlicerGalleryControlModuleWidget::setMultiContrastLayout() 
+void qSlicerGalleryControlModuleWidget::SetMultiContrastLayout() 
 {
-  // Q_D(qSlicerGalleryControlModuleWidget); 
-  //  QTextStream out(stdout);
-  //  out << "Stuff happened";
-  this->printMethod(QString("MCLayout"));
-  
-  this->layout=QString("multicontrast");
-  this->gallery_timepoints=1;
-  this->gallery_contrasts=4;
-  this->printMethod("Setting layout" +layout +"t="+QString::number(this->gallery_timepoints) + "c=" +QString::number(this->gallery_contrasts));
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(true);
+  this->PrintMethod(QString("MCLayout"));
+  this->GalleryTimepoints=1;
+  this->GalleryContrasts=4;
+  this->GalleryOrientations=1;
+
+  this->Layout=QString("multicontrast");
+  this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
   return ;
 }
-void qSlicerGalleryControlModuleWidget::setOrthagonalLayout() 
+void qSlicerGalleryControlModuleWidget::SetOrthagonalLayout() 
 {
-  //  Q_D(qSlicerGalleryControlModuleWidget); 
-  //  QTextStream out(stdout);
-  //  out << "Stuff happened";
-  this->printMethod(QString("OLayout"));
-  this->layout=QString("orthagonal");
-  this->gallery_timepoints=1;
-  this->gallery_contrasts=1;
-  this->printMethod("Setting layout" +layout +"t="+QString::number(this->gallery_timepoints) + "c=" +QString::number(this->gallery_contrasts));
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(false);
+  this->Layout=QString("orthagonal");
+  this->GalleryTimepoints=1;
+  this->GalleryContrasts=1;
+  this->GalleryOrientations=3;
+  
+  this->PrintMethod(QString("OLayout"));
+  this->PrintMethod("Setting Layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
   return;
 }
 
-void qSlicerGalleryControlModuleWidget::setCheckBox()
+void qSlicerGalleryControlModuleWidget::SetLabels() 
+{
+  Q_D(qSlicerGalleryControlModuleWidget);
+  LoadLabels=d->DatasetLabelsOn->isChecked();
+//   if ( LoadLabels) {
+//     this->PrintText(QString("labelson"));
+//   } else  {
+//     this->PrintText(QString("labelsoff"));
+//   }
+  return;
+}
+
+void qSlicerGalleryControlModuleWidget::SetCheckBox()
 {
   //  Q_D(qSlicerGalleryControlModuleWidget); //i think the Q_D line connects us back to our parent widget
-  this->printMethod(QString("setCheckBox"));
+  this->PrintMethod(QString("SetCheckBox"));
   //get checkbox name
   //d->Properties["t_02"]= d->t_02->isChecked();// derp not set derp. must declare something
   //this->checkboxes.insert(std::pair<QString,bool>(QString("t_02"),true));
 
   // these checks work when we dont ahve any connection in the .ui file from qt designer.
-//   this->timepoints[0]=d->t_00->isChecked();
-//   this->timepoints[2]=d->t_02->isChecked();
-//   this->timepoints[4]=d->t_04->isChecked();
-//   this->timepoints[8]=d->t_08->isChecked();
-//   this->timepoints[12]=d->t_12->isChecked();
-//   this->timepoints[18]=d->t_18->isChecked();
-//   this->timepoints[24]=d->t_24->isChecked();
-//   this->timepoints[40]=d->t_40->isChecked();
-//   this->timepoints[80]=d->t_80->isChecked();
+//   this->Timepoints[0]=d->t_00->isChecked();
+//   this->Timepoints[2]=d->t_02->isChecked();
+//   this->Timepoints[4]=d->t_04->isChecked();
+//   this->Timepoints[8]=d->t_08->isChecked();
+//   this->Timepoints[12]=d->t_12->isChecked();
+//   this->Timepoints[18]=d->t_18->isChecked();
+//   this->Timepoints[24]=d->t_24->isChecked();
+//   this->Timepoints[40]=d->t_40->isChecked();
+//   this->Timepoints[80]=d->t_80->isChecked();
 
 
   return;
 }
 
+
+
+//-----------------------------------------------------------------------------
+// build mrml and load datasests
+void qSlicerGalleryControlModuleWidget::BuildScene() 
+{
+  this->PrintMethod(QString("BuildScene")); 
+  Q_D(qSlicerGalleryControlModuleWidget); //i think the Q_D line connects us back to our parent widget
+
+  // last minute settings read
+  QStringList timepointList =this->GetTimepoints();
+  QStringList contrastList  =this->GetContrasts();
+  QString     orientation    =d->orientationComboBox->currentText(); //meaningless for orthagonal layout
+    
+  QString labelFile;
+  QString imageFile;
+  QString nodeName;
+  QStringList imageList;
+  QStringList labelList;
+
+  //DataPath 
+  //LabelPath
+  //DataPattern (replace timeptint with numbers and contrast with abreviation)
+  //LabelPattern(replace timepoint with numbers)
+  
+  ////
+  // initialize scene
+  ////
+  int viewers=GalleryTimepoints*GalleryContrasts*GalleryOrientations;
+  //create viewnode.
+  //  vtkMRMLScene* display=new vtkMRMLScene; //dindnt work
+  //qSlicerApplication * s_app_obj = qSlicerApplication::application();
+  //status=s_app_obj->ioManager()->loadScene(out_path);   // out_path is a qstring here.
+
+  //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
+
+
+  // Read the labelmap segmentation     
+//   qSlicerIO::IOProperties parameters;     
+//   parameters["fileName"] = QString(d_ptr->segFolder->text());      
+//   parameters["labelmap"] = true;     
+//   parameters["centered"] = true;    
+//   qSlicerCoreApplication::application()->coreIOManager()->loadNodes(qSlicerIO::VolumeFile, parameters);
+
+  int viewerNum=1;
+  for (int c=0;c<contrastList.size();c++) {    
+    //load labels
+    for(int t=0;t<timepointList.size(); t++) {
+      //add node, load data and assign to node, load labels and assign to node
+      //volume
+      //add vtkMRMLScalarVolumeNode  
+      //label
+      //add vtkMRMLVolumeNode
+      //slice
+      //add vtkMRMLSliceNode
+
+      imageFile=DataPattern;
+      imageFile.replace("timepoint",timepointList[t]);
+      imageFile.replace("contrast",contrastList[c]);
+      /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+      imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+      //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
+      //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
+      
+      this->PrintText("image="+imageFile);
+      //loaddata assign as data to viewer viewerNum
+      //if nodename no exist
+      qSlicerIO::IOProperties imParameters;     
+      imParameters["fileName"] = imageFile;      
+      imParameters["labelmap"] = false;     
+      imParameters["center"] = true;    
+      imParameters["autoWindowLevel"] = false;
+      //imParameters["fileType"] = "VolumeFile";
+      qSlicerCoreApplication::application()->coreIOManager()->loadNodes(QString("VolumeFile"), imParameters); //qSlicerIO::VolumeFile
+     
+      if( LoadLabels ){ 
+	labelFile=LabelPattern;
+	labelFile.replace("timepoint",timepointList[t]);
+	labelFile=LabelPath+"/"+labelFile;
+//      QDir 
+//      labelFile=QFileInfo(LabelPath,labelFile);
+
+	this->PrintText("label="+labelFile);
+	//loaddata assign as labels to viewer viewerNum
+	qSlicerIO::IOProperties laParameters;     
+	laParameters["fileName"] = labelFile;      
+	laParameters["labelmap"] = true;     
+	laParameters["center"] = true;    
+	laParameters["autoWindowLevel"] = false;
+	qSlicerCoreApplication::application()->coreIOManager()->loadNodes(QString("VolumeFile"), laParameters); //qSlicerIO::VolumeFile, 
+      }
+      
+      viewerNum++;
+    }
+    viewerNum++;    
+  }
+
+  //arrange data
+  for(int t=0;t<timepointList.size(); t++) {
+    for (int c=0;c<contrastList.size();c++) {    
+      imageFile=DataPattern;
+      imageFile.replace("timepoint",timepointList[t]);
+      imageFile.replace("contrast",contrastList[c]);
+      /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+      imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+      //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
+      //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
+      if( LoadLabels ){ 
+	labelFile=LabelPattern;
+	labelFile.replace("timepoint",timepointList[t]);
+	labelFile=LabelPath+"/"+labelFile;
+      }
+    }
+  }      
+
+  //status=s_app_obj->ioManager()->loadNodes();
+
+
+
+  return;
+}
 //-----------------------------------------------------------------------------
 // the dumb solution first, call perl to set up the mrml scene. 
 // might be able to use the functions from addData to load the scene once perl generates it. 
 // hav to set this up to depenbd on the data module. 
-void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML() 
+void qSlicerGalleryControlModuleWidget::CallPerlScriptAndLoadMRML() 
 {
-  this->printMethod(QString("cpsandloadMRML")); 
+  this->PrintMethod(QString("cpsandloadMRML")); 
   //  int state_check=0;
   //  int status_code=0;
 
@@ -249,38 +456,42 @@ void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML()
 //  QString status_message = "Status=" + QString::number(status_code) + " State=" + QString::number(state_check);
 
   //get chekcboxes and clean up and split the strings   
-  QString time_string     =this->getTimepoints();
-  QString contrast_string =this->getContrasts();
-
-//   if ( layout == "time_contrast") {
-//   } else if(layout  == "")  { 
-//   } else if(layout  == "")  { 
-//   } else if ( layout == "No_Layout"){
+  QString time_string     =QString(""); //this->GetTimepoints();
+  QString contrast_string =QString(""); //this->GetContrasts();
+  if ( LoadLabels) {
+    this->PrintText(QString("  found labelson"));
+  } else  {
+    this->PrintText(QString("  found labelsoff"));
+  }
+  
+  
+//   if ( Layout == "time_contrast") {
+//   } else if(Layout  == "")  { 
+//   } else if(Layout  == "")  { 
+//   } else if ( Layout == "No_Layout"){
 //   }
-  QString perl_program    = QString("slicer_generate") + "_" + layout + ".pl" ;
+  QString perl_program    = QString("slicer_generate") + "_" + Layout + ".pl" ;
   QString perl_prefix = "/usr/bin/perl /Users/james/svnworkspaces/slicer_generate_mrml_via_template/";
-  QString out_path = QString("/tmp/") + layout + time_string + contrast_string + ".mrml";
-  //  QString out_path = QString("/tmp/") + layout+ ".mrml";
+  QString out_path = QString("/tmp/") + Layout + time_string + contrast_string + ".mrml";
+  //  QString out_path = QString("/tmp/") + Layout+ ".mrml";
   QString command  = perl_prefix + 
     perl_program + 
     " -c " + contrast_string + 
     " -t " + time_string  + 
     " -o " + out_path ;
-  this->printText(command);
-  //   this->printText(layout);
-  //   this->printText(QString::number(gallery_timepoints));
-  //   this->printText(QString::number(gallery_contrasts));
-  //   this->printText(QString::number(timepoints[40]));
-  //   this->printText(QString::number(timepoints[80]));
+  this->PrintText(command);
+  //   this->PrintText(Layout);
+  //   this->PrintText(QString::number(GalleryTimepoints));
+  //   this->PrintText(QString::number(GalleryContrasts));
+  //   this->PrintText(QString::number(Timepoints[40]));
+  //   this->PrintText(QString::number(Timepoints[80]));
   
   //this -> variable works same as without
-  //   this->printText(layout);
-  //   this->printText(QString::number(this->gallery_timepoints));
-  //   this->printText(QString::number(this->gallery_contrasts));
-  //   this->printText(QString::number(this->timepoints[40]));
-  //   this->printText(QString::number(this->timepoints[80]));
-
-
+  //   this->PrintText(Layout);
+  //   this->PrintText(QString::number(this->GalleryTimepoints));
+  //   this->PrintText(QString::number(this->GalleryContrasts));
+  //   this->PrintText(QString::number(this->Timepoints[40]));
+  //   this->PrintText(QString::number(this->Timepoints[80]));
   
   //somehow call console application and retrun the mrml file we need to load...
   // call command
@@ -290,12 +501,10 @@ void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML()
 
   bool status = false;
   
-
   // load mrmlscene 
   qSlicerIO::IOProperties properties;
   properties["fileName"]=out_path;
   properties["clear"]=true;
-
 
   /* does not seem to be working.NOt sure why not it appears as if i'm using this correctly. */
 //   qSlicerCoreIOManager* sload;
@@ -310,11 +519,10 @@ void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML()
   qSlicerApplication * app = qSlicerApplication::application();
   status=app->ioManager()->loadScene(out_path);
 
-
   if ( status )  {
-    this->printText(QString("Load Success"));
+    this->PrintText(QString("Load Success"));
   } else { 
-    this->printText(QString("Load Failed"));
+    this->PrintText(QString("Load Failed"));
   }
   //qSlicerApplication::application()->ioManager()->openLoadSceneDialog();// change dialog to just add the scene.
   // doesnt workqSlicerApplication::application()->ioManager()->openLoadSceneDialog(out_path);// change dialog to just add the scene.
@@ -322,14 +530,14 @@ void qSlicerGalleryControlModuleWidget::callPerlScriptAndLoadMRML()
   return;
 }
 
-
-QString qSlicerGalleryControlModuleWidget::getTimepoints()
+QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
 {
-  this->printMethod(QString("getTimepoints"));
+  this->PrintMethod(QString("GetTimepoints"));
   Q_D(qSlicerGalleryControlModuleWidget);
 
   //forms list of timepoints
-  // not used for timepoints, but is for contrasts in getContrasts
+  // not used for timepoints, but is for contrasts in GetContrasts
+  QStringList timepoint_list;
   QStringList all_timepoints;
   all_timepoints <<"00"
 		 <<"02"
@@ -341,48 +549,46 @@ QString qSlicerGalleryControlModuleWidget::getTimepoints()
 		 <<"40"
 		 <<"80"
     ;
-  
+
   // put all checkbox states in array
-  this->timepoints[0]=d->t_00->isChecked();
-  this->timepoints[2]=d->t_02->isChecked();
-  this->timepoints[4]=d->t_04->isChecked();
-  this->timepoints[8]=d->t_08->isChecked();
-  this->timepoints[12]=d->t_12->isChecked();
-  this->timepoints[18]=d->t_18->isChecked();
-  this->timepoints[24]=d->t_24->isChecked();
-  this->timepoints[40]=d->t_40->isChecked();
-  this->timepoints[80]=d->t_80->isChecked();
+  this->Timepoints[0]=d->t_00->isChecked();
+  this->Timepoints[2]=d->t_02->isChecked();
+  this->Timepoints[4]=d->t_04->isChecked();
+  this->Timepoints[8]=d->t_08->isChecked();
+  this->Timepoints[12]=d->t_12->isChecked();
+  this->Timepoints[18]=d->t_18->isChecked();
+  this->Timepoints[24]=d->t_24->isChecked();
+  this->Timepoints[40]=d->t_40->isChecked();
+  this->Timepoints[80]=d->t_80->isChecked();
  
-  QString outtimepoints("");
+  QString timepoint_string("");
   int timepoints_found=0;
   //QString status_message = "Status=" + QString::number(status_code) + " State=" + QString::number(state_check);
-  int elements=(sizeof(timepoints)/sizeof(bool));
-  this->printText("Timepoints:"+QString::number(this->gallery_timepoints));
+  int elements=(sizeof(Timepoints)/sizeof(bool));
+  this->PrintText("Timepoints:"+QString::number(this->GalleryTimepoints));
   for(int i=0;i<elements;i++) {
-    //    this->printText();
-    //    int *name=alltimepoints.at(i);
-    if ( timepoints[i] == 1 && timepoints_found < this->gallery_timepoints ) {
-      this->printText("checking timepoint"+ QString::number(i)+" match <"+QString::number(timepoints[i])+">");      
-      //      QString num= QString("%1").arg(i,2,0,QChar('0')).toUpper();
+    if ( Timepoints[i] == 1 && timepoints_found < this->GalleryTimepoints ) {
+      //      this->PrintText("checking timepoint"+ QString::number(i)+" match <"+QString::number(Timepoints[i])+">");      
       QString num = QString("%1").arg(i, 2, 10, QChar('0')).toUpper();
-      //      QString num = QString::number(i);
-      outtimepoints = outtimepoints + num + "," ;
+      timepoint_string = timepoint_string + num + "," ;
+      timepoint_list<<num;
       timepoints_found++;
     } else { 
-      //      this->printText("checking timepoint"+ QString::number(i)+" nomatch <"+QString::number(timepoints[i])+">");
+      //      this->PrintText("checking timepoint"+ QString::number(i)+" nomatch <"+QString::number(Timepoints[i])+">");
     }
   }
 
-  return outtimepoints;
-  //  return "";
+  //  return timepoint_string;
+  return timepoint_list;
 }
 
-QString qSlicerGalleryControlModuleWidget::getContrasts()
+QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
 {
-  this->printMethod(QString("getContrasts"));
+  this->PrintMethod(QString("GetContrasts"));
   Q_D(qSlicerGalleryControlModuleWidget);
 
   //forms comaseparated list of contrast strings
+  QStringList contrast_list;
   QStringList all_contrasts;
   all_contrasts << "ad" 
 		<< "adc"
@@ -395,54 +601,47 @@ QString qSlicerGalleryControlModuleWidget::getContrasts()
 		<< ""
 		<< ""
     ;
+  this->Contrasts[0]=d->c_ad  ->isChecked();
+  this->Contrasts[1]=d->c_adc ->isChecked();
+  this->Contrasts[2]=d->c_b0  ->isChecked();
+  this->Contrasts[3]=d->c_dwi ->isChecked();
+  this->Contrasts[4]=d->c_fa  ->isChecked();
+  this->Contrasts[5]=d->c_freq->isChecked();
+  this->Contrasts[6]=d->c_gre ->isChecked();
+  this->Contrasts[7]=d->c_rd  ->isChecked();
+  //  this->Contrasts[8]=d->c_->isChecked();
+  //  this->Contrasts[9]=d->c_->isChecked();
 
-  this->contrasts[0]=d->c_ad  ->isChecked();
-  this->contrasts[1]=d->c_adc ->isChecked();
-  this->contrasts[2]=d->c_b0  ->isChecked();
-  this->contrasts[3]=d->c_dwi ->isChecked();
-  this->contrasts[4]=d->c_fa  ->isChecked();
-  this->contrasts[5]=d->c_freq->isChecked();
-  this->contrasts[6]=d->c_gre ->isChecked();
-  this->contrasts[7]=d->c_rd  ->isChecked();
-  //  this->contrasts[8]=d->c_->isChecked();
-  //  this->contrasts[9]=d->c_->isChecked();
-
-  QString outcontrasts("");
+  QString contrast_string("");
   int contrasts_found=0;
-  int elements=(sizeof(contrasts)/sizeof(bool));
-  this->printText("Contrasts:"+QString::number(this->gallery_contrasts));
+  int elements=(sizeof(Contrasts)/sizeof(bool));
+  this->PrintText("Contrasts:"+QString::number(this->GalleryContrasts));
   for(int i=0;i<elements;i++) {
-    //    this->printText();
-    //    int *name=allcontrasts.at(i);
-    if ( contrasts[i] == 1 && contrasts_found < this->gallery_contrasts ) {
-      this->printText("checking contrast"+ QString::number(i)+" match <"+QString::number(contrasts[i])+">");      
-      //      QString num= QString("%1").arg(i,2,0,QChar('0')).toUpper();
-      //      QString num = QString::number(i);
-      QString num = all_contrasts[i];
-      outcontrasts = outcontrasts + num + "," ;
+    if ( Contrasts[i] == 1 && contrasts_found < this->GalleryContrasts ) {
+      //      this->PrintText("checking contrast"+ QString::number(i)+" match <"+QString::number(Contrasts[i])+">");      
+      //      QString num = all_contrasts[i];
+      //      contrast_string = contrast_string + num + "," ;
+      contrast_string = contrast_string + all_contrasts[i] + "," ;
+      contrast_list << all_contrasts[i];
       contrasts_found++;
     } else { 
-      //      this->printText("checking contrast"+ QString::number(i)+" nomatch <"+QString::number(contrasts[i])+">");
+      //      this->PrintText("checking contrast"+ QString::number(i)+" nomatch <"+QString::number(Contrasts[i])+">");
     }
   }
-
-  
-  return outcontrasts;
+  //  return contrast_string;
+  return contrast_list;
 }
 
 
-void qSlicerGalleryControlModuleWidget::printMethod(const QString text)
+void qSlicerGalleryControlModuleWidget::PrintMethod(const QString text)
 {
-
   QString pass="qSlicerGalleyControlModuleWidget method:"+text;
-
-  this->printText(pass);
-  
+  this->PrintText(pass);
   return;
 }
 
 
-void qSlicerGalleryControlModuleWidget::printText(const QString text)
+void qSlicerGalleryControlModuleWidget::PrintText(const QString text)
 {
   QTextStream out(stdout);
   out << text<<"\n";

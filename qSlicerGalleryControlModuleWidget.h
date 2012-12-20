@@ -54,27 +54,35 @@ public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerGalleryControlModuleWidget(QWidget *parent=0);
   virtual ~qSlicerGalleryControlModuleWidget();
-  void printMethod(QString);//print to console with constant text+message
-  void printText(QString); //print to console
+  void PrintMethod(QString);//print to console with constant text+message
+  void PrintText(QString); //print to console
   //  virtual std::unordered_map checkboxes();  // holds checkbox states. will name checkboxes according to the QT UI, which is c_[a-z]+ and t_[0-9]{2} 
   //  virtual std::map<QString,bool> checkboxes();  // holds checkbox states. will name checkboxes according to the QT UI, which is c_[a-z]+ and t_[0-9]{2} 
   //  std::multimap<QString,bool> checkboxes();  // holds checkbox states. will name checkboxes according to the QT UI, which is c_[a-z]+ and t_[0-9]{2} 
-  bool timepoints[100];// easy way to keep track of waht time tpoints, undefined elements(false ones) are not considered
-  bool contrasts[10];
-  int gallery_timepoints;
-  int gallery_contrasts;
-  QString layout;
-
+  bool Timepoints[100];// easy way to keep track of waht time tpoints, undefined elements(false ones) are not considered
+  bool Contrasts[10];
+  bool LoadLabels;
+  //  int Orientation; // not used commented
+  int GalleryTimepoints;  //number of time points to load
+  int GalleryContrasts;   //number of contrasts to load
+  int GalleryOrientations;//number of orientations to display(generally 1 or 3). 
+  QString Layout;
+  QString DataPath; 
+  QString LabelPath;
+  QString DataPattern;
+  QString LabelPattern;
 
 public slots:
 
-  void setTimeContrastLayout();
-  void setMultiContrastLayout();
-  void  setOrthagonalLayout();
-  void callPerlScriptAndLoadMRML();
-  void setCheckBox();
-  QString getContrasts(); //will look up all the checkboxes in contrasts group and make a string of their values
-  QString getTimepoints(); // will look up all the checkboxes in timepionts gorup and make a string of their values. 
+  void SetTimeContrastLayout();
+  void SetMultiContrastLayout();
+  void SetOrthagonalLayout();
+  void SetLabels();
+  void CallPerlScriptAndLoadMRML();
+  void BuildScene();
+  void SetCheckBox();
+  QStringList GetContrasts(); //will look up all the checkboxes in contrasts group and make a string of their values
+  QStringList GetTimepoints(); // will look up all the checkboxes in timepionts gorup and make a string of their values. 
 
 
 protected:
