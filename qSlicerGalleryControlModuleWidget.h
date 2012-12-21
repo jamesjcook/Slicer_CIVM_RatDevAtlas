@@ -83,7 +83,7 @@ public slots:
   void SetCheckBox();
   QStringList GetContrasts(); //will look up all the checkboxes in contrasts group and make a string of their values
   QStringList GetTimepoints(); // will look up all the checkboxes in timepionts gorup and make a string of their values. 
-
+  bool NodeExists(QString);
 
 protected:
   QScopedPointer<qSlicerGalleryControlModuleWidgetPrivate> d_ptr;

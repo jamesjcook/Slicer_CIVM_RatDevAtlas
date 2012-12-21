@@ -81,6 +81,9 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLSliceNode.h"
+#include "vtkMRMLViewNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -100,9 +103,27 @@
 #include "vtkContourFilter.h"
 #include "vtkPolyDataNormals.h"
 #include <vtkExodusIIReader.h>
+#include <vtkCollection.h>
+#include <vtkSmartPointer.h>
 
 
+// Qt includes
+#include <QDebug>
 
+// MRMLWidgets includes
+#include <qMRMLSliceWidget.h>
+#include <qMRMLSliceControllerWidget.h>
+#include <qMRMLThreeDWidget.h>
+#include <qMRMLThreeDViewControllerWidget.h>
+
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerLayoutManager.h"
+
+// MRMLLogic includes
+#include "vtkMRMLLayoutLogic.h"
+
+// VTK includes
 
 
 //qSlicerGalleryControlModlueWidget, class code
@@ -173,19 +194,19 @@ void qSlicerGalleryControlModuleWidget::setup()
   //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
   this->DataPattern  =QString("ptimepoint_average_contrast.nii");
   this->LabelPattern =QString("pndtimepoint_average_labels.nii");
-  
+
 
   // these connections were setup in the *.ui file, but that seems to have been broken
   /*  connect(d->setTimeContrastLayoutButton, SIGNAL(released()),
 	  this, SLOT(SetTimeContrastLayout()));
-  connect(d->SetOrthagonalLayoutButton, SIGNAL(released()), 
+  connect(d->SetOrthagonalLayoutButton, SIGNAL(released()),
 	  this, SLOT(SetOrthagonalLayout()));
-  connect(d->SetMultiContastLayoutButton, SIGNAL(released()), 
+  connect(d->SetMultiContastLayoutButton, SIGNAL(released()),
   this, SLOT(SetMultiContastLayout()));*/
   QSignalMapper* signalMapper;
 
   signalMapper = new QSignalMapper(this);
-  
+
   /*  signalMapper = new QSignalMapper(this);
   signalMapper->setMapping(taxFileButton, QString("taxfile.txt"));
   signalMapper->setMapping(accountFileButton, QString("accountsfile.txt"));
@@ -226,51 +247,54 @@ void qSlicerGalleryControlModuleWidget::setup()
 
 
 
-void qSlicerGalleryControlModuleWidget::SetTimeContrastLayout() 
+void qSlicerGalleryControlModuleWidget::SetTimeContrastLayout()
 {
   Q_D(qSlicerGalleryControlModuleWidget);
   d->DataSelectionGroupBox->setCollapsed(false);
   d->orientationComboBox->setEnabled(true);
-  this->Layout=QString("time_contrast");
+  this->PrintMethod(QString("TimeContrast"));
+  this->Layout=QString("TimeContrast");
   this->GalleryTimepoints=3;
   this->GalleryContrasts=2;
   this->GalleryOrientations=1;
-  
-  this->PrintMethod(QString("TCLayout"));
+
+
   this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
   return ;
 }
 
-void qSlicerGalleryControlModuleWidget::SetMultiContrastLayout() 
+void qSlicerGalleryControlModuleWidget::SetMultiContrastLayout()
 {
   Q_D(qSlicerGalleryControlModuleWidget);
   d->DataSelectionGroupBox->setCollapsed(false);
   d->orientationComboBox->setEnabled(true);
-  this->PrintMethod(QString("MCLayout"));
+  this->PrintMethod(QString("MultiContrast"));
+  this->Layout=QString("MultiContrast");
   this->GalleryTimepoints=1;
   this->GalleryContrasts=4;
   this->GalleryOrientations=1;
 
-  this->Layout=QString("multicontrast");
+
   this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
   return ;
 }
-void qSlicerGalleryControlModuleWidget::SetOrthagonalLayout() 
+void qSlicerGalleryControlModuleWidget::SetOrthagonalLayout()
 {
   Q_D(qSlicerGalleryControlModuleWidget);
   d->DataSelectionGroupBox->setCollapsed(false);
   d->orientationComboBox->setEnabled(false);
-  this->Layout=QString("orthagonal");
+  this->PrintMethod(QString("Orthagonal"));
+  this->Layout=QString("Orthagonal");
   this->GalleryTimepoints=1;
   this->GalleryContrasts=1;
   this->GalleryOrientations=3;
-  
-  this->PrintMethod(QString("OLayout"));
+
+
   this->PrintMethod("Setting Layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
   return;
 }
 
-void qSlicerGalleryControlModuleWidget::SetLabels() 
+void qSlicerGalleryControlModuleWidget::SetLabels()
 {
   Q_D(qSlicerGalleryControlModuleWidget);
   LoadLabels=d->DatasetLabelsOn->isChecked();
@@ -309,47 +333,88 @@ void qSlicerGalleryControlModuleWidget::SetCheckBox()
 
 //-----------------------------------------------------------------------------
 // build mrml and load datasests
-void qSlicerGalleryControlModuleWidget::BuildScene() 
+void qSlicerGalleryControlModuleWidget::BuildScene()
 {
-  this->PrintMethod(QString("BuildScene")); 
+  this->PrintMethod(QString("BuildScene"));
   Q_D(qSlicerGalleryControlModuleWidget); //i think the Q_D line connects us back to our parent widget
 
   // last minute settings read
   QStringList timepointList =this->GetTimepoints();
   QStringList contrastList  =this->GetContrasts();
   QString     orientation    =d->orientationComboBox->currentText(); //meaningless for orthagonal layout
-    
+
   QString labelFile;
   QString imageFile;
   QString nodeName;
   QStringList imageList;
   QStringList labelList;
 
-  //DataPath 
+  //DataPath
   //LabelPath
   //DataPattern (replace timeptint with numbers and contrast with abreviation)
   //LabelPattern(replace timepoint with numbers)
-  
+
   ////
   // initialize scene
   ////
-  int viewers=GalleryTimepoints*GalleryContrasts*GalleryOrientations;
+  //  int viewers=GalleryTimepoints*GalleryContrasts*GalleryOrientations;
   //create viewnode.
   //  vtkMRMLScene* display=new vtkMRMLScene; //dindnt work
-  //qSlicerApplication * s_app_obj = qSlicerApplication::application();
+  qSlicerApplication * s_app_obj = qSlicerApplication::application();
   //status=s_app_obj->ioManager()->loadScene(out_path);   // out_path is a qstring here.
 
   //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
 
 
-  // Read the labelmap segmentation     
-//   qSlicerIO::IOProperties parameters;     
-//   parameters["fileName"] = QString(d_ptr->segFolder->text());      
-//   parameters["labelmap"] = true;     
-//   parameters["centered"] = true;    
+  // Read the labelmap segmentation
+//   qSlicerIO::IOProperties parameters;
+//   parameters["fileName"] = QString(d_ptr->segFolder->text());
+//   parameters["labelmap"] = true;
+//   parameters["centered"] = true;
 //   qSlicerCoreApplication::application()->coreIOManager()->loadNodes(qSlicerIO::VolumeFile, parameters);
 
-  int viewerNum=1;
+
+  // TimeContrast is
+  // 123
+  // 456
+  // ryg
+  // 456
+  // MultiContrast is
+  // 12
+  // 34
+  // ry
+  // g1
+  // Orthagonal i s
+  // 12
+  // 34
+  QStringList SliceNodes;
+  if (Layout=="TimeContrast") {
+    //Three over three
+    SliceNodes << "Red"
+	       << "Yellow"
+	       << "Green"
+	       << "4"
+	       << "5"
+	       << "6";
+
+  } else if ( Layout=="MultiContrast") {
+    //Two over Two
+    SliceNodes << "Red"
+	       << "Yellow"
+	       << "Green"
+	       << "1";
+
+  } else if( Layout=="Orthagonal") {
+    //Four-Up
+    SliceNodes << "Red"
+	       << "Yellow"
+	       << "Green";
+
+  } else {
+    this->PrintText(QString("Bad layout selection "+Layout));
+  }
+
+  int viewerNum=0;
   for (int c=0;c<contrastList.size();c++) {    
     //load labels
     for(int t=0;t<timepointList.size(); t++) {
@@ -365,60 +430,90 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
       /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+      nodeName=imageFile;
+      nodeName.replace(".nii","");
       imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
       //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
       //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
-      
       this->PrintText("image="+imageFile);
       //loaddata assign as data to viewer viewerNum
-      //if nodename no exist
-      qSlicerIO::IOProperties imParameters;     
-      imParameters["fileName"] = imageFile;      
-      imParameters["labelmap"] = false;     
-      imParameters["center"] = true;    
-      imParameters["autoWindowLevel"] = false;
-      //imParameters["fileType"] = "VolumeFile";
-      qSlicerCoreApplication::application()->coreIOManager()->loadNodes(QString("VolumeFile"), imParameters); //qSlicerIO::VolumeFile
-     
+      if ( ! NodeExists(nodeName) ) { //if nodename no exist
+	qSlicerIO::IOProperties imParameters;     
+	imParameters["fileName"] = imageFile;      
+	imParameters["labelmap"] = false;     
+	imParameters["center"] = true;    
+	imParameters["autoWindowLevel"] = false;
+	//imParameters["fileType"] = "VolumeFile";
+	//qSlicerCoreApplications::application()->coreIOManager()->loadNodes(QString("VolumeFile"), imParameters); //qSlicerIO::VolumeFile
+	s_app_obj->coreIOManager()->loadNodes(QString("VolumeFile"), imParameters); //qSlicerIO::VolumeFile
+      }
       if( LoadLabels ){ 
 	labelFile=LabelPattern;
 	labelFile.replace("timepoint",timepointList[t]);
+	nodeName=labelFile;
+	nodeName.replace(".nii","");
 	labelFile=LabelPath+"/"+labelFile;
 //      QDir 
 //      labelFile=QFileInfo(LabelPath,labelFile);
 
+
 	this->PrintText("label="+labelFile);
 	//loaddata assign as labels to viewer viewerNum
-	qSlicerIO::IOProperties laParameters;     
-	laParameters["fileName"] = labelFile;      
-	laParameters["labelmap"] = true;     
-	laParameters["center"] = true;    
-	laParameters["autoWindowLevel"] = false;
-	qSlicerCoreApplication::application()->coreIOManager()->loadNodes(QString("VolumeFile"), laParameters); //qSlicerIO::VolumeFile, 
+	if ( ! NodeExists(nodeName) ) { 
+	  qSlicerIO::IOProperties laParameters;     
+	  laParameters["fileName"] = labelFile;      
+	  laParameters["labelmap"] = true;     
+	  laParameters["center"] = true;    
+	  laParameters["autoWindowLevel"] = false;
+	  s_app_obj->coreIOManager()->loadNodes(QString("VolumeFile"), laParameters); //qSlicerIO::VolumeFile, 
+	}
       }
-      
       viewerNum++;
     }
-    viewerNum++;    
   }
-
-  //arrange data
-  for(int t=0;t<timepointList.size(); t++) {
-    for (int c=0;c<contrastList.size();c++) {    
+  ////
+  //arrange objects.
+  ////
+  viewerNum=0;
+  for (int c=0;c<contrastList.size();c++) {    
+    for(int t=0;t<timepointList.size(); t++) {
+      //add node, load data and assign to node, load labels and assign to node
+      //volume
+      //add vtkMRMLScalarVolumeNode  
+      //label
+      //add vtkMRMLVolumeNode
+      //slice
+      //add vtkMRMLSliceNode
+      //slicenodename
+      QString sliceNodeID=QString("vtkMRMLSliceNode")+SliceNodes[viewerNum];
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
+      imageFile.replace(".nii","");
       /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+      nodeName=imageFile;
+      nodeName.replace(".nii","");
       imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+
+      this->PrintText(sliceNodeID+"<-"+nodeName);
       //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
       //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
+      //      this->PrintText("image="+imageFile);
       if( LoadLabels ){ 
 	labelFile=LabelPattern;
 	labelFile.replace("timepoint",timepointList[t]);
+	nodeName=labelFile;
+	nodeName.replace(".nii","");
 	labelFile=LabelPath+"/"+labelFile;
+	this->PrintText(sliceNodeID+"<-"+nodeName);
+//      QDir 
+//      labelFile=QFileInfo(LabelPath,labelFile);
+//	this->PrintText("label="+labelFile);
       }
+      viewerNum++;
     }
-  }      
+  }
+
 
   //status=s_app_obj->ioManager()->loadNodes();
 
@@ -426,6 +521,9 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 
   return;
 }
+
+
+
 //-----------------------------------------------------------------------------
 // the dumb solution first, call perl to set up the mrml scene. 
 // might be able to use the functions from addData to load the scene once perl generates it. 
@@ -500,8 +598,8 @@ void qSlicerGalleryControlModuleWidget::CallPerlScriptAndLoadMRML()
   const QString op = out_path;
 
   bool status = false;
-  
-  // load mrmlscene 
+
+  // load mrmlscene
   qSlicerIO::IOProperties properties;
   properties["fileName"]=out_path;
   properties["clear"]=true;
@@ -514,20 +612,38 @@ void qSlicerGalleryControlModuleWidget::CallPerlScriptAndLoadMRML()
 /* fails in crash
   //qSlicerSlicer2SceneReader* reader= new qSlicerSlicer2SceneReader();
   //reader->load(properties);*/
-  
   //slicerdevel example
   qSlicerApplication * app = qSlicerApplication::application();
   status=app->ioManager()->loadScene(out_path);
 
   if ( status )  {
     this->PrintText(QString("Load Success"));
-  } else { 
+  } else {
     this->PrintText(QString("Load Failed"));
   }
   //qSlicerApplication::application()->ioManager()->openLoadSceneDialog();// change dialog to just add the scene.
   // doesnt workqSlicerApplication::application()->ioManager()->openLoadSceneDialog(out_path);// change dialog to just add the scene.
-    
   return;
+}
+
+// simple function to check if a node is part of the scene already.
+bool qSlicerGalleryControlModuleWidget::NodeExists(QString nodeName)
+{
+  vtkMRMLScene* currentScene = this->mrmlScene();
+  this->Superclass::setMRMLScene(currentScene);
+  
+  // Search the scene for the nodes and return true on match
+  currentScene->InitTraversal();
+  for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNode());) {
+    if (sn->GetName()==nodeName) { 
+      //this->PrintText("Found volume not reloading");
+      return true;
+    } else { 
+      //this->PrintText("examined node "+nameTemp+"not the same as "+nodeName);
+    }
+  }
+  this->PrintText("Did not find "+nodeName+" in open nodes.");
+  return false;
 }
 
 QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
@@ -647,3 +763,52 @@ void qSlicerGalleryControlModuleWidget::PrintText(const QString text)
   out << text<<"\n";
   return;
 }
+
+
+
+// bool qSlicerGalleryControlModuleWidget::setMRMLScene(vtkMRMLScene *currentScene) {
+//   Q_D(qSlicerGalleryControlModuleWidget);
+//   vtkMRMLScene* currentScene = this->mrmlScene();
+//   this->Superclass::setMRMLScene(currentScene);
+  
+//   qSlicerApplication * app = qSlicerApplication::application();
+//   if (!app) {
+//     return false;
+//   }
+//   qSlicerLayoutManager * layoutManager = app->layoutManager();
+//   if (!layoutManager) {
+//     return false;
+//   }
+
+//   // Search the scene for the available view nodes and create a
+//   // Controller and connect it up
+//   currentScene->InitTraversal();
+//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLSliceNode"));) {
+//     vtkMRMLSliceNode *snode = vtkMRMLSliceNode::SafeDownCast(sn);
+//     if (snode) { 
+//       d->createController(snode, layoutManager);
+//     }
+//   }
+  
+//   currentScene->InitTraversal();
+//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLViewNode"));) {
+//     vtkMRMLViewNode *vnode = vtkMRMLViewNode::SafeDownCast(sn);
+//     if (vnode) {
+//       d->createController(vnode, layoutManager);
+//     }
+//   }
+  
+//   // Need to listen for any new slice or view nodes being added
+//   this->qvtkReconnect(currentScene, currentScene, vtkMRMLScene::NodeAddedEvent,
+// 		      this, SLOT(onNodeAddedEvent(vtkObject*,vtkObject*)));
+  
+//   // Need to listen for any slice or view nodes being removed
+//   this->qvtkReconnect(currentScene, currentScene, vtkMRMLScene::NodeRemovedEvent,
+// 		      this, SLOT(onNodeRemovedEvent(vtkObject*,vtkObject*)));
+  
+//   // Listen to changes in the Layout so we only show controllers for
+//   // the visible nodes
+//   QObject::connect(layoutManager, SIGNAL(layoutChanged(int)), this,
+// 		   SLOT(onLayoutChanged(int)));
+  
+// }
