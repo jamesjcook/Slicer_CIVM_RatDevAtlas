@@ -17,12 +17,19 @@
 
 // Qt includes
 #include <QDebug>
-#include <QSignalMapper>
 #include <QFileInfo>
+#include <QFileDialog>
+#include <QFileSystemWatcher>
+
+#include <QSignalMapper>
 
 // SlicerQt includes
 #include "qSlicerGalleryControlModuleWidget.h"
 #include "ui_qSlicerGalleryControlModule.h"
+
+#include "qSlicerApplication.h"
+#include "qSlicerIOManager.h"
+#include "qSlicerLayoutManager.h"
 
 //#include "qSlicerCoreApplication.h"
 #include "qSlicerApplication.h"
@@ -30,10 +37,7 @@
 #include "qSlicerIOManager.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLCoreTestingMacros.h"
-
 #include "qSlicerFileReader.h"
-
-
 #include "qSlicerAbstractModule.h"
 //#include "qSlicerAppAboutDialog.h"
 #include "qSlicerActionsDialog.h"
@@ -51,24 +55,15 @@
 
 #include  <Modules/Loadable/Volumes/qSlicerVolumesIO.h>
 
-
-
-
-
-
-// Qt includes
-#include <QFileDialog>
-#include <QFileSystemWatcher>
-
-// SlicerQt includes
-#include "qSlicerApplication.h"
-#include "qSlicerIOManager.h"
-
 // vtkSlicerLogic includes
 #include "vtkSlicerTransformLogic.h"
 
 // MRMLWidgets includes
 #include <qMRMLUtils.h>
+#include <qMRMLSliceWidget.h>
+#include <qMRMLSliceControllerWidget.h>
+#include <qMRMLThreeDWidget.h>
+#include <qMRMLThreeDViewControllerWidget.h>
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -84,6 +79,9 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLViewNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
+
+// MRMLLogic includes
+#include "vtkMRMLLayoutLogic.h"
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -107,23 +105,6 @@
 #include <vtkSmartPointer.h>
 
 
-// Qt includes
-#include <QDebug>
-
-// MRMLWidgets includes
-#include <qMRMLSliceWidget.h>
-#include <qMRMLSliceControllerWidget.h>
-#include <qMRMLThreeDWidget.h>
-#include <qMRMLThreeDViewControllerWidget.h>
-
-// SlicerQt includes
-#include "qSlicerApplication.h"
-#include "qSlicerLayoutManager.h"
-
-// MRMLLogic includes
-#include "vtkMRMLLayoutLogic.h"
-
-// VTK includes
 
 
 //qSlicerGalleryControlModlueWidget, class code
@@ -388,28 +369,29 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   // 12
   // 34
   QStringList SliceNodes;
+  bool setSliceOrient=true;
   if (Layout=="TimeContrast") {
     //Three over three
     SliceNodes << "Red"
 	       << "Yellow"
 	       << "Green"
-	       << "4"
-	       << "5"
-	       << "6";
+	       << "Slice4"
+	       << "Slice5"
+	       << "Slice6";
 
   } else if ( Layout=="MultiContrast") {
     //Two over Two
     SliceNodes << "Red"
 	       << "Yellow"
 	       << "Green"
-	       << "1";
+	       << "Slice1";
 
   } else if( Layout=="Orthagonal") {
     //Four-Up
     SliceNodes << "Red"
 	       << "Yellow"
 	       << "Green";
-
+    setSliceOrient=false;
   } else {
     this->PrintText(QString("Bad layout selection "+Layout));
   }
@@ -471,10 +453,18 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       viewerNum++;
     }
   }
+  
   ////
   //arrange objects.
   ////
   viewerNum=0;
+  vtkMRMLScene* currentScene = this->mrmlScene();
+//   QStringList nodeTypes=currentScene->GetNodeClasses();
+  
+//   for(int nt=0;nt<nodeTypes.size;nt++) {
+//     this->PrintText("Node types in scene"+nodeTypes[nt]);
+//   }
+
   for (int c=0;c<contrastList.size();c++) {    
     for(int t=0;t<timepointList.size(); t++) {
       //add node, load data and assign to node, load labels and assign to node
@@ -496,6 +486,14 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
 
       this->PrintText(sliceNodeID+"<-"+nodeName);
+      
+      vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+      vtkMRMLSliceNode *sliceNode;
+      if ( sn != NULL ) { 
+	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn);
+      }
+      //sliceNode->
+     
       //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
       //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
       //      this->PrintText("image="+imageFile);
@@ -509,6 +507,17 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 //      QDir 
 //      labelFile=QFileInfo(LabelPath,labelFile);
 //	this->PrintText("label="+labelFile);
+      }
+
+      if(setSliceOrient) {
+	if (orientation=="Axial") {
+	  sliceNode->SetOrientationToAxial(); 
+	} else if (orientation=="Coronal") {
+	  sliceNode->SetOrientationToCoronal();
+	} else if (orientation=="Sagittal") {
+	  sliceNode->SetOrientationToSagittal();
+                   //SetOrientationToSagittal
+	}
       }
       viewerNum++;
     }
