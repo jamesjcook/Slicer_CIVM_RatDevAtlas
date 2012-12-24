@@ -77,7 +77,9 @@
 #include "vtkMRMLDisplayNode.h"
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLSliceCompositeNode.h"
 #include "vtkMRMLViewNode.h"
+#include "vtkMRMLAbstractViewNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 
 // MRMLLogic includes
@@ -457,8 +459,17 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   ////
   //arrange objects.
   ////
+  // vtkMRMLNode method   UpdateReferenceID
+  //  ShowNodesInScene();
   viewerNum=0;
   vtkMRMLScene* currentScene = this->mrmlScene();
+  //currentScene
+  //sliceNode = vtkMRMLSliceCompositeNode::SafeDownCast(sn);
+  //  vtkMRMLAbstractViewNode display= vtkMRMLAbstractViewNode();
+  //  display->
+
+
+
 //   QStringList nodeTypes=currentScene->GetNodeClasses();
   
 //   for(int nt=0;nt<nodeTypes.size;nt++) {
@@ -475,7 +486,8 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       //slice
       //add vtkMRMLSliceNode
       //slicenodename
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+SliceNodes[viewerNum];
+      QString sliceNodeID=QString("vtkMRMLSlice")+SliceNodes[viewerNum];
+      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SliceNodes[viewerNum];
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
@@ -485,45 +497,82 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       nodeName.replace(".nii","");
       imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
 
-      this->PrintText(sliceNodeID+"<-"+nodeName);
+      this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
       
       vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
       vtkMRMLSliceNode *sliceNode;
+      vtkMRMLSliceCompositeNode *scNode;
       if ( sn != NULL ) { 
-	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn);
+	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //Composite
+      } 
+      if ( sliceNode == NULL ) { 
+	this->PrintText("Error setting slicenode");
       }
-      //sliceNode->
-     
+      
+
+
+//       if(setSliceOrient && sliceNode != NULL && scNode != NULL ) {
+// 	if (orientation=="Axial") {
+// 	  sliceNode->SetOrientationToAxial(); 
+// 	} else if (orientation=="Coronal") {
+// 	  sliceNode->SetOrientationToCoronal();
+// 	} else if (orientation=="Sagittal") {
+// 	  sliceNode->SetOrientationToSagittal();
+// 	  //SetOrientationToSagittal
+// 	}
+//       } 
+
+
+      if ( scn != NULL ) {  //&& sliceNodeID == "" vtkMRMLSliceCompositeNodeRed
+	this->PrintText("pre-down to composite");
+	scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
+	this->PrintText("post-down to composite");
+      } else { 
+	this->PrintText("Error setting composite node ID");
+      }
+      
+      if ( scNode != NULL ) { //vtkMRMLSliceCompositeNodeRed
+	this->PrintText("SliceComposite ready:"+sliceCompositeNodeID);
+      }
+      //char* myChar = myString.toStdString().c_str();
+      //nodeName.toStdString().c_str()
+	
+      scNode->SetBackgroundVolumeID(this->NodeID(nodeName));
+      
       //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
       //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
-      //      this->PrintText("image="+imageFile);
       if( LoadLabels ){ 
 	labelFile=LabelPattern;
 	labelFile.replace("timepoint",timepointList[t]);
 	nodeName=labelFile;
 	nodeName.replace(".nii","");
 	labelFile=LabelPath+"/"+labelFile;
-	this->PrintText(sliceNodeID+"<-"+nodeName);
-//      QDir 
-//      labelFile=QFileInfo(LabelPath,labelFile);
-//	this->PrintText("label="+labelFile);
+	//this->PrintText(sliceCompositeNodeID+"<-"+nodeName);
+	//nodeName.toStdString().c_str()
+	scNode->SetLabelVolumeID(this->NodeID(nodeName));	
+	//      QDir 
+	//      labelFile=QFileInfo(LabelPath,labelFile);
+	//	this->PrintText("label="+labelFile);
       }
+      
+      //// No orietnation set on slicecomposite
+//       if(setSliceOrient && scNode != NULL ) {
+// 	if (orientation=="Axial") {
+// 	  scNode->SetOrientationToAxial(); 
+// 	} else if (orientation=="Coronal") {
+// 	  scNode->SetOrientationToCoronal();
+// 	} else if (orientation=="Sagittal") {
+// 	  scNode->SetOrientationToSagittal();
+// 	  //SetOrientationToSagittal
+// 	}
+//       }  
 
-      if(setSliceOrient) {
-	if (orientation=="Axial") {
-	  sliceNode->SetOrientationToAxial(); 
-	} else if (orientation=="Coronal") {
-	  sliceNode->SetOrientationToCoronal();
-	} else if (orientation=="Sagittal") {
-	  sliceNode->SetOrientationToSagittal();
-                   //SetOrientationToSagittal
-	}
-      }
-      viewerNum++;
+     viewerNum++;
     }
   }
-
-
+  
+  
   //status=s_app_obj->ioManager()->loadNodes();
 
 
@@ -654,6 +703,27 @@ bool qSlicerGalleryControlModuleWidget::NodeExists(QString nodeName)
   this->PrintText("Did not find "+nodeName+" in open nodes.");
   return false;
 }
+
+const char * qSlicerGalleryControlModuleWidget::NodeID(QString nodeName)
+{
+  vtkMRMLScene* currentScene = this->mrmlScene();
+  this->Superclass::setMRMLScene(currentScene);
+  
+  // Search the scene for the nodes and return true on match
+  currentScene->InitTraversal();
+  for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNode());) {
+    if (sn->GetName()==nodeName) { 
+      //this->PrintText("Found volume not reloading");
+      return sn->GetID();
+    } else { 
+      //this->PrintText("examined node "+nameTemp+"not the same as "+nodeName);
+    }
+  }
+  this->PrintText("Did not find "+nodeName+" in open nodes.");
+  return "";
+}
+
+
 
 QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
 {
@@ -821,3 +891,25 @@ void qSlicerGalleryControlModuleWidget::PrintText(const QString text)
 // 		   SLOT(onLayoutChanged(int)));
   
 // }
+
+
+void qSlicerGalleryControlModuleWidget::ShowNodesInScene() //vtkMRMLScene *)
+{
+  vtkMRMLScene* currentScene = this->mrmlScene();
+  qSlicerApplication * app = qSlicerApplication::application();
+  if (!app)
+    {
+    return;
+    }
+  qSlicerLayoutManager * layoutManager = app->layoutManager();
+  if (!layoutManager)
+    {
+    return;
+    }
+  currentScene->InitTraversal();
+  vtkIndent indent= vtkIndent(5);
+  for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
+    {
+      sn->PrintSelf(std::cout,indent);
+    }
+}
