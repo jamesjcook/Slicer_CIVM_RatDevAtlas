@@ -380,14 +380,14 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 	       << "Slice4"
 	       << "Slice5"
 	       << "Slice6";
-
+    this->PrintText("Layout should have 6 volumes");
   } else if ( Layout=="MultiContrast") {
     //Two over Two
     SliceNodes << "Red"
 	       << "Yellow"
 	       << "Green"
 	       << "Slice1";
-
+    this->PrintText("Layout should have 4 volumes");
   } else if( Layout=="Orthagonal") {
     //Four-Up
     SliceNodes << "Red"
@@ -399,9 +399,10 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   }
 
   int viewerNum=0;
-  for (int c=0;c<contrastList.size();c++) {    
+  for (int c=0;c<contrastList.size();c++) {
     //load labels
     for(int t=0;t<timepointList.size(); t++) {
+      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(contrastList.size()));
       //add node, load data and assign to node, load labels and assign to node
       //volume
       //add vtkMRMLScalarVolumeNode  
@@ -461,7 +462,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   ////
   // vtkMRMLNode method   UpdateReferenceID
   //  ShowNodesInScene();
-  viewerNum=0;
+
   vtkMRMLScene* currentScene = this->mrmlScene();
   //currentScene
   //sliceNode = vtkMRMLSliceCompositeNode::SafeDownCast(sn);
@@ -476,9 +477,11 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 //     this->PrintText("Node types in scene"+nodeTypes[nt]);
 //   }
 
+  viewerNum=0;
   for (int c=0;c<contrastList.size();c++) {    
     for(int t=0;t<timepointList.size(); t++) {
       //add node, load data and assign to node, load labels and assign to node
+      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
       //volume
       //add vtkMRMLScalarVolumeNode  
       //label
@@ -500,34 +503,21 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
       
       vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
-      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
       vtkMRMLSliceNode *sliceNode;
+
+      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
       vtkMRMLSliceCompositeNode *scNode;
       if ( sn != NULL ) { 
-	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //Composite
+	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
       } 
       if ( sliceNode == NULL ) { 
 	this->PrintText("Error setting slicenode");
       }
       
-
-
-//       if(setSliceOrient && sliceNode != NULL && scNode != NULL ) {
-// 	if (orientation=="Axial") {
-// 	  sliceNode->SetOrientationToAxial(); 
-// 	} else if (orientation=="Coronal") {
-// 	  sliceNode->SetOrientationToCoronal();
-// 	} else if (orientation=="Sagittal") {
-// 	  sliceNode->SetOrientationToSagittal();
-// 	  //SetOrientationToSagittal
-// 	}
-//       } 
-
-
       if ( scn != NULL ) {  //&& sliceNodeID == "" vtkMRMLSliceCompositeNodeRed
-	this->PrintText("pre-down to composite");
+	//	this->PrintText("pre-down to composite");
 	scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
-	this->PrintText("post-down to composite");
+	//	this->PrintText("post-down to composite");
       } else { 
 	this->PrintText("Error setting composite node ID");
       }
@@ -555,7 +545,19 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 	//      labelFile=QFileInfo(LabelPath,labelFile);
 	//	this->PrintText("label="+labelFile);
       }
-      
+
+      // crashes every time for some reason
+//       if(setSliceOrient) {
+// 	if (orientation=="Axial") {
+// 	  sliceNode->SetOrientationToAxial(); 
+// 	} else if (orientation=="Coronal") {
+// 	  sliceNode->SetOrientationToCoronal();
+// 	} else if (orientation=="Sagittal") {
+// 	  sliceNode->SetOrientationToSagittal();
+// 	  //SetOrientationToSagittal
+// 	}
+//       } 
+	
       //// No orietnation set on slicecomposite
 //       if(setSliceOrient && scNode != NULL ) {
 // 	if (orientation=="Axial") {
@@ -571,6 +573,54 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
      viewerNum++;
     }
   }
+
+  // doenst work still crashes, 
+//   viewerNum=0;
+//   for (int c=0;c<contrastList.size();c++) {    
+//     for(int t=0;t<timepointList.size(); t++) {
+//       //add node, load data and assign to node, load labels and assign to node
+//       //volume
+//       //add vtkMRMLScalarVolumeNode  
+//       //label
+//       //add vtkMRMLVolumeNode
+//       //slice
+//       //add vtkMRMLSliceNode
+//       //slicenodename
+//       QString sliceNodeID=QString("vtkMRMLSlice")+SliceNodes[viewerNum];
+//       QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SliceNodes[viewerNum];
+//       imageFile=DataPattern;
+//       imageFile.replace("timepoint",timepointList[t]);
+//       imageFile.replace("contrast",contrastList[c]);
+//       imageFile.replace(".nii","");
+//       /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+//       nodeName=imageFile;
+//       nodeName.replace(".nii","");
+//       imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+
+//       this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
+      
+//       vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+//       vtkMRMLSliceNode *sliceNode;
+//       if ( sn != NULL ) { 
+// 	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //Composite
+//       } 
+//       if ( sliceNode == NULL ) { 
+// 	this->PrintText("Error setting slicenode");
+//       }
+//       if(setSliceOrient) {
+// 	if (orientation=="Axial") {
+// 	  sliceNode->SetOrientationToAxial(); 
+// 	} else if (orientation=="Coronal") {
+// 	  sliceNode->SetOrientationToCoronal();
+// 	} else if (orientation=="Sagittal") {
+// 	  sliceNode->SetOrientationToSagittal();
+// 	  //SetOrientationToSagittal
+// 	}
+//       } 
+//       viewerNum++;
+//     }
+//   }
+
   
   
   //status=s_app_obj->ioManager()->loadNodes();
@@ -694,7 +744,7 @@ bool qSlicerGalleryControlModuleWidget::NodeExists(QString nodeName)
   currentScene->InitTraversal();
   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNode());) {
     if (sn->GetName()==nodeName) { 
-      //this->PrintText("Found volume not reloading");
+      this->PrintText("Found volume not reloading");
       return true;
     } else { 
       //this->PrintText("examined node "+nameTemp+"not the same as "+nodeName);
@@ -763,7 +813,7 @@ QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
   this->PrintText("Timepoints:"+QString::number(this->GalleryTimepoints));
   for(int i=0;i<elements;i++) {
     if ( Timepoints[i] == 1 && timepoints_found < this->GalleryTimepoints ) {
-      //      this->PrintText("checking timepoint"+ QString::number(i)+" match <"+QString::number(Timepoints[i])+">");      
+      this->PrintText("checking timepoint"+ QString::number(i)+" match <"+QString::number(Timepoints[i])+">");      
       QString num = QString("%1").arg(i, 2, 10, QChar('0')).toUpper();
       timepoint_string = timepoint_string + num + "," ;
       timepoint_list<<num;
