@@ -106,6 +106,8 @@
 #include <vtkCollection.h>
 #include <vtkSmartPointer.h>
 
+#include <vtkMRMLLayoutNode.h>
+
 
 
 
@@ -348,14 +350,12 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 
   //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
 
-
   // Read the labelmap segmentation
 //   qSlicerIO::IOProperties parameters;
 //   parameters["fileName"] = QString(d_ptr->segFolder->text());
 //   parameters["labelmap"] = true;
 //   parameters["centered"] = true;
 //   qSlicerCoreApplication::application()->coreIOManager()->loadNodes(qSlicerIO::VolumeFile, parameters);
-
 
   // TimeContrast is
   // 123
@@ -370,33 +370,54 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   // Orthagonal i s
   // 12
   // 34
-  QStringList SliceNodes;
+
   bool setSliceOrient=true;
-  if (Layout=="TimeContrast") {
+//  qSlicerAppMainWindow main=
+  vtkMRMLScene* currentScene = this->mrmlScene();
+  currentScene->InitTraversal();
+  vtkMRMLLayoutNode* sceneLayoutNode = vtkMRMLLayoutNode::SafeDownCast(  
+    currentScene->GetNextNodeByClass("vtkMRMLLayoutNode"));
+  QStringList sliceNodes;
+  if (Layout=="TimeContrast") 
+    {
     //Three over three
-    SliceNodes << "Red"
-	       << "Yellow"
-	       << "Green"
-	       << "Slice4"
-	       << "Slice5"
-	       << "Slice6";
+    sliceNodes << "Red"
+               << "Yellow"
+               << "Green"
+               << "Slice4"
+               << "Slice5"
+               << "Slice6";
+    //vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView
     this->PrintText("Layout should have 6 volumes");
-  } else if ( Layout=="MultiContrast") {
+    //sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutInitialView);
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
+    } 
+  else if ( Layout=="MultiContrast") 
+    {
     //Two over Two
-    SliceNodes << "Red"
-	       << "Yellow"
-	       << "Green"
-	       << "Slice1";
+    sliceNodes << "Red"
+               << "Yellow"
+               << "Green"
+               << "Slice1";
+    //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
     this->PrintText("Layout should have 4 volumes");
-  } else if( Layout=="Orthagonal") {
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
+    } 
+  else if( Layout=="Orthagonal") 
+    {
     //Four-Up
-    SliceNodes << "Red"
+    sliceNodes << "Red"
 	       << "Yellow"
 	       << "Green";
     setSliceOrient=false;
-  } else {
+    //vtkMRMLLayoutNode::SlicerLayoutFourUpView
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
+    this->PrintText("Layout should have 1 volumes");
+    }
+  else 
+    {
     this->PrintText(QString("Bad layout selection "+Layout));
-  }
+    }
 
   int viewerNum=0;
   for (int c=0;c<contrastList.size();c++) {
@@ -422,6 +443,23 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
       this->PrintText("image="+imageFile);
       //loaddata assign as data to viewer viewerNum
+//       vtkMRMLScene* currentScene = this->mrmlScene();
+//       QString sliceNodeID=QString("vtkMRMLSlice")+sliceNodes[viewerNum];
+//       vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+//       vtkMRMLSliceNode *sliceNode;
+//       if ( sn != NULL ) { 
+// 	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
+//       } 
+//       if(setSliceOrient) {
+// 	if (orientation=="Axial") {
+// 	  sliceNode->SetOrientationToAxial(); 
+// 	} else if (orientation=="Coronal") {
+// 	  sliceNode->SetOrientationToCoronal();
+// 	} else if (orientation=="Sagittal") {
+// 	  sliceNode->SetOrientationToSagittal();
+// 	  //SetOrientationToSagittal
+// 	}
+//       } 
       if ( ! NodeExists(nodeName) ) { //if nodename no exist
 	qSlicerIO::IOProperties imParameters;     
 	imParameters["fileName"] = imageFile;      
@@ -463,7 +501,6 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   // vtkMRMLNode method   UpdateReferenceID
   //  ShowNodesInScene();
 
-  vtkMRMLScene* currentScene = this->mrmlScene();
   //currentScene
   //sliceNode = vtkMRMLSliceCompositeNode::SafeDownCast(sn);
   //  vtkMRMLAbstractViewNode display= vtkMRMLAbstractViewNode();
@@ -489,8 +526,8 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       //slice
       //add vtkMRMLSliceNode
       //slicenodename
-      QString sliceNodeID=QString("vtkMRMLSlice")+SliceNodes[viewerNum];
-      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SliceNodes[viewerNum];
+      QString sliceNodeID=QString("vtkMRMLSlice")+sliceNodes[viewerNum];
+      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+sliceNodes[viewerNum];
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
@@ -504,12 +541,12 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       
       vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
       vtkMRMLSliceNode *sliceNode;
-
-      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
-      vtkMRMLSliceCompositeNode *scNode;
       if ( sn != NULL ) { 
 	sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
       } 
+
+      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
+      vtkMRMLSliceCompositeNode *scNode;
       if ( sliceNode == NULL ) { 
 	this->PrintText("Error setting slicenode");
       }
@@ -527,8 +564,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       }
       //char* myChar = myString.toStdString().c_str();
       //nodeName.toStdString().c_str()
-	
-      scNode->SetBackgroundVolumeID(this->NodeID(nodeName));
+            scNode->SetBackgroundVolumeID(this->NodeID(nodeName));
       
       //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
       //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
@@ -586,8 +622,8 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
 //       //slice
 //       //add vtkMRMLSliceNode
 //       //slicenodename
-//       QString sliceNodeID=QString("vtkMRMLSlice")+SliceNodes[viewerNum];
-//       QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SliceNodes[viewerNum];
+//       QString sliceNodeID=QString("vtkMRMLSlice")+sliceNodes[viewerNum];
+//       QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+sliceNodes[viewerNum];
 //       imageFile=DataPattern;
 //       imageFile.replace("timepoint",timepointList[t]);
 //       imageFile.replace("contrast",contrastList[c]);
@@ -961,5 +997,58 @@ void qSlicerGalleryControlModuleWidget::ShowNodesInScene() //vtkMRMLScene *)
   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
     {
       sn->PrintSelf(std::cout,indent);
+    }
+}
+
+
+void qSlicerGalleryControlModuleWidget::SetLayout() 
+{
+  vtkMRMLScene* currentScene = this->mrmlScene();  
+  bool setSliceOrient=true;
+//  qSlicerAppMainWindow main=
+//  vtkMRMLNode currentScene->GetNextNodeByClass("vtkMRMLLayoutNode")
+  currentScene->InitTraversal();
+  vtkMRMLLayoutNode* sceneLayoutNode = vtkMRMLLayoutNode::SafeDownCast(
+    currentScene->GetNextNodeByClass("vtkMRMLLayoutNode") );
+  QStringList sliceNodes;
+  if (Layout=="TimeContrast") 
+    {
+    //Three over three
+    sliceNodes << "Red"
+               << "Yellow"
+               << "Green"
+               << "Slice4"
+               << "Slice5"
+               << "Slice6";
+    //vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView
+    this->PrintText("Layout should have 6 volumes");
+    //sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutInitialView);
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
+    } 
+  else if ( Layout=="MultiContrast") 
+    {
+    //Two over Two
+    sliceNodes << "Red"
+               << "Yellow"
+               << "Green"
+               << "Slice1";
+    //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
+    this->PrintText("Layout should have 4 volumes");
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
+    } 
+  else if( Layout=="Orthagonal") 
+    {
+    //Four-Up
+    sliceNodes << "Red"
+	       << "Yellow"
+	       << "Green";
+    setSliceOrient=false;
+    //vtkMRMLLayoutNode::SlicerLayoutFourUpView
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
+    this->PrintText("Layout should have 1 volumes");
+    }
+  else 
+    {
+    this->PrintText(QString("Bad layout selection "+Layout));
     }
 }

@@ -71,6 +71,7 @@ public:
   QString LabelPath;
   QString DataPattern;
   QString LabelPattern;
+  void SetLayout();
   void ShowNodesInScene(); // print node names in the scene,
   const char * NodeID(QString);
 public slots:
