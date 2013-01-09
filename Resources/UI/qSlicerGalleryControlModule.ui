@@ -169,7 +169,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="setOrthagonalLayoutButton">
+          <widget class="QRadioButton" name="setOrthogonalLayoutButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
              <horstretch>32</horstretch>

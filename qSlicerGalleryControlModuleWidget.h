@@ -78,10 +78,11 @@ public slots:
 
   void SetTimeContrastLayout();
   void SetMultiContrastLayout();
-  void SetOrthagonalLayout();
+  void SetOrthogonalLayout();
   void SetLabels();
   void CallPerlScriptAndLoadMRML();
   void BuildScene();
+  void OrientationTest();
   void SetCheckBox();
   QStringList GetContrasts(); //will look up all the checkboxes in contrasts group and make a string of their values
   QStringList GetTimepoints(); // will look up all the checkboxes in timepionts gorup and make a string of their values. 
