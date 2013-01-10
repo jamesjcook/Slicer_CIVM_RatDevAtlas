@@ -447,12 +447,15 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
     {
     this->PrintText(QString("Bad layout selection "+Layout));
     }
-  
+  QStringList orthogonalOrientations;
+  orthogonalOrientations << "Axial"
+                         << "Sagittal"
+                         << "Coronal";
   int viewerNum=0;
 //      scNode->SetLinkedControl(1);
   for (int c=0;c<contrastList.size();c++) 
     {
-    for(int t=0;t<timepointList.size(); t++) 
+    for (int t=0;t<timepointList.size(); t++) 
       {
       this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
       //add node, load data and assign to node, load labels and assign to node
@@ -548,7 +551,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   viewerNum=0;
   for (int c=0;c<contrastList.size();c++) 
     {
-    for(int t=0;t<timepointList.size(); t++) 
+    for (int t=0;t<timepointList.size(); t++) 
       {
       //add node, load data and assign to node, load labels and assign to node
       this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
@@ -581,6 +584,10 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         { 
         this->PrintText("Error setting slicenode");
         }
+      else
+        {
+        return;
+        }
       if ( scn != NULL )   //&& sliceNodeID == "" vtkMRMLSliceCompositeNodeRed
         {
 	scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
@@ -588,12 +595,16 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       else 
         { 
 	this->PrintText("Error setting composite node ID");
+        return;
         }
       if ( scNode != NULL ) 
         { //vtkMRMLSliceCompositeNodeRed
 	this->PrintText("SliceComposite ready:"+sliceCompositeNodeID);
         }
-      scNode->SetLinkedControl(1);
+      else 
+        {
+        return;
+        }
       scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
       if( LoadLabels )
         { 
@@ -610,15 +621,58 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         {
         scNode->SetLabelVolumeID(NULL);
         }
-      
-//       if(setSliceOrient) 
-//         {
+      if(setSliceOrient) 
+	{
+        scNode->SetLinkedControl(1);
 //         sliceNode->vtkSetStringMacro(orientation.toLatin1());
-//         }
+	}
       viewerNum++;
       }
     }
-   
+  //
+  if (!setSliceOrient) 
+    {
+    for (  viewerNum=0;viewerNum<sliceNodes.size();viewerNum++) 
+      {
+      int t=0; 
+      int c=0;
+      orientation=orthogonalOrientations[viewerNum];
+      QString sliceNodeID=QString("vtkMRMLSliceNode")+sliceNodes[viewerNum];
+      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+sliceNodes[viewerNum];
+      imageFile=DataPattern;
+      imageFile.replace("timepoint",timepointList[t]);
+      imageFile.replace("contrast",contrastList[c]);
+      imageFile.replace(".nii","");
+      /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+      nodeName=imageFile;
+      nodeName.replace(".nii","");
+      imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+      this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
+      vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+      vtkMRMLSliceNode *sliceNode;
+      sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
+      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
+      vtkMRMLSliceCompositeNode *scNode;
+      scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
+      sliceNode->SetOrientation(orientation.toLatin1());
+      scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
+      if( LoadLabels )
+        { 
+        labelFile=LabelPattern;
+        labelFile.replace("timepoint",timepointList[t]);
+        nodeName=labelFile;
+        nodeName.replace(".nii","");
+        labelFile=LabelPath+"/"+labelFile;
+        scNode->SetLabelVolumeID(this->NodeID(nodeName));	
+//        scNode->vtkSetMacro(SetLabelMapOpacity(0.10));
+        scNode->SetLabelOpacity(0.25);
+        } 
+      else 
+        {
+        scNode->SetLabelVolumeID(NULL);
+        }
+      }
+    }
   return;
 }
 
@@ -832,6 +886,7 @@ QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
 		<< "b0"
 		<< "dwi"
 		<< "fa"
+		<< "fa_color"
 		<< "freq"
 		<< "gre"
 		<< "rd"
@@ -843,9 +898,10 @@ QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
   this->Contrasts[2]=d->c_b0  ->isChecked();
   this->Contrasts[3]=d->c_dwi ->isChecked();
   this->Contrasts[4]=d->c_fa  ->isChecked();
-  this->Contrasts[5]=d->c_freq->isChecked();
-  this->Contrasts[6]=d->c_gre ->isChecked();
-  this->Contrasts[7]=d->c_rd  ->isChecked();
+  this->Contrasts[5]=d->c_fa_color ->isChecked();
+  this->Contrasts[6]=d->c_freq->isChecked();
+  this->Contrasts[7]=d->c_gre ->isChecked();
+  this->Contrasts[8]=d->c_rd  ->isChecked();
   //  this->Contrasts[8]=d->c_->isChecked();
   //  this->Contrasts[9]=d->c_->isChecked();
 

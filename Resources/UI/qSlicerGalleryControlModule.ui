@@ -568,6 +568,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="c_fa_color">
+              <property name="text">
+               <string>fa_color</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QCheckBox" name="c_freq">
               <property name="font">
                <font>
