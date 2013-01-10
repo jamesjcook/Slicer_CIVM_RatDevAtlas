@@ -554,7 +554,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
     for (int t=0;t<timepointList.size(); t++) 
       {
       //add node, load data and assign to node, load labels and assign to node
-      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
+//      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
       QString sliceNodeID=QString("vtkMRMLSliceNode")+sliceNodes[viewerNum];
       QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+sliceNodes[viewerNum];
       imageFile=DataPattern;
@@ -580,12 +580,13 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         }
       vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
       vtkMRMLSliceCompositeNode *scNode;
-      if ( sliceNode == NULL ) 
+      if ( sliceNode != NULL ) 
         { 
-        this->PrintText("Error setting slicenode");
+        this->PrintText("Slicenode set");
         }
       else
         {
+        this->PrintText("Error setting slicenode");
         return;
         }
       if ( scn != NULL )   //&& sliceNodeID == "" vtkMRMLSliceCompositeNodeRed
@@ -603,6 +604,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         }
       else 
         {
+        this->PrintText("SliceComposite bad:"+sliceCompositeNodeID);
         return;
         }
       scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
@@ -632,6 +634,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   //
   if (!setSliceOrient) 
     {
+    this->PrintText("\n\n\nOrthogonal set.\n\n\n");
     for (  viewerNum=0;viewerNum<sliceNodes.size();viewerNum++) 
       {
       int t=0; 
