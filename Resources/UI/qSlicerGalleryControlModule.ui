@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>371</width>
-    <height>636</height>
+    <width>348</width>
+    <height>847</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,30 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="ctkComboBox" name="ComboBox">
+     <item>
+      <property name="text">
+       <string>Rat Developement Atlas</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Multiple Sclerosis</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkSettingsPanel" name="SettingsPanel"/>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox">
+     <property name="minimumSize">
+      <size>
+       <width>75</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <pointsize>13</pointsize>
@@ -33,6 +56,12 @@
       </property>
       <item>
        <widget class="QFrame" name="gallery_labels">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <pointsize>13</pointsize>
@@ -58,6 +87,40 @@
           <number>0</number>
          </property>
          <item>
+          <widget class="QLabel" name="O_text">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>1</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Orthogonal (1x1)</string>
+           </property>
+           <property name="scaledContents">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="D3D_text">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>1</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Dual 3D Compare (2x1)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QLabel" name="MC_text">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
@@ -79,31 +142,10 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="O_text">
+          <widget class="QLabel" name="TC_text">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
              <horstretch>1</horstretch>
-             <verstretch>1</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Orthagonal (1x1)</string>
-           </property>
-           <property name="scaledContents">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="TC_text">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Ignored" vsizetype="MinimumExpanding">
-             <horstretch>25</horstretch>
              <verstretch>1</verstretch>
             </sizepolicy>
            </property>
@@ -141,34 +183,6 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QRadioButton" name="setMultiContrastLayoutButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-             <horstretch>32</horstretch>
-             <verstretch>32</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../qSlicerGalleryControlModule.qrc">
-             <normaloff>:/Images/Icons/MultiContrast.tiff</normaloff>:/Images/Icons/MultiContrast.tiff</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>64</width>
-             <height>44</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QRadioButton" name="setOrthogonalLayoutButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
@@ -187,6 +201,51 @@
            <property name="icon">
             <iconset resource="../qSlicerGalleryControlModule.qrc">
              <normaloff>:/Images/Icons/Orthagonal.tiff</normaloff>:/Images/Icons/Orthagonal.tiff</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>64</width>
+             <height>44</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="setDual3DLayoutButton">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../qSlicerGalleryControlModule.qrc">
+             <normaloff>:/Images/Icons/TwoByThreeD.tiff</normaloff>:/Images/Icons/TwoByThreeD.tiff</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>64</width>
+             <height>44</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="setMultiContrastLayoutButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+             <horstretch>32</horstretch>
+             <verstretch>32</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../qSlicerGalleryControlModule.qrc">
+             <normaloff>:/Images/Icons/MultiContrast.tiff</normaloff>:/Images/Icons/MultiContrast.tiff</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -254,7 +313,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QFrame" name="data_labels">
+       <widget class="QFrame" name="DataLabels">
         <property name="font">
          <font>
           <pointsize>13</pointsize>
@@ -287,7 +346,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Timepoint in days</string>
+            <string>Age in days</string>
            </property>
           </widget>
          </item>
@@ -307,7 +366,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QFrame" name="frame_3">
+       <widget class="QFrame" name="DataSelectionFrame">
         <property name="font">
          <font>
           <pointsize>13</pointsize>
@@ -761,6 +820,17 @@
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ctkComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSettingsPanel</class>
+   <extends>QWidget</extends>
+   <header>ctkSettingsPanel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

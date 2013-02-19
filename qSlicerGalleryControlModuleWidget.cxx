@@ -174,7 +174,7 @@ void qSlicerGalleryControlModuleWidget::setup()
   /* hardcode for now*/
   /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
   /* labels are at /DataPath/labels/completed/completed_good_header/nii/           */
-  this->DataPath=QString("/Volumes/sandbox/devatlas");
+  this->DataPath=QString("/ratdevatlas");
   this->LabelPath=QString(DataPath+"/labels/completed/completed_good_header/nii/");
   //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
   //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
@@ -184,48 +184,49 @@ void qSlicerGalleryControlModuleWidget::setup()
 
   // these connections were setup in the *.ui file, but that seems to have been broken
   /*  connect(d->setTimeContrastLayoutButton, SIGNAL(released()),
-	  this, SLOT(SetTimeContrastLayout()));
-  connect(d->SetOrthogonalLayoutButton, SIGNAL(released()),
-	  this, SLOT(SetOrthogonalLayout()));
-  connect(d->SetMultiContastLayoutButton, SIGNAL(released()),
-  this, SLOT(SetMultiContastLayout()));*/
+      this, SLOT(SetTimeContrastLayout()));
+      connect(d->SetOrthogonalLayoutButton, SIGNAL(released()),
+      this, SLOT(SetOrthogonalLayout()));
+      connect(d->SetMultiContastLayoutButton, SIGNAL(released()),
+      this, SLOT(SetMultiContastLayout()));*/
   QSignalMapper* signalMapper;
-
+  
   signalMapper = new QSignalMapper(this);
 
   /*  signalMapper = new QSignalMapper(this);
-  signalMapper->setMapping(taxFileButton, QString("taxfile.txt"));
-  signalMapper->setMapping(accountFileButton, QString("accountsfile.txt"));
-  signalMapper->setMapping(reportFileButton, QString("reportfile.txt"));
-
-  connect(taxFileButton, SIGNAL(clicked()),
-	  signalMapper, SLOT (map()));
-  connect(accountFileButton, SIGNAL(clicked()),
-	  signalMapper, SLOT (map()));
-  connect(reportFileButton, SIGNAL(clicked()),
-  signalMapper, SLOT (map()));*/
-
+      signalMapper->setMapping(taxFileButton, QString("taxfile.txt"));
+      signalMapper->setMapping(accountFileButton, QString("accountsfile.txt"));
+      signalMapper->setMapping(reportFileButton, QString("reportfile.txt"));
+      
+      connect(taxFileButton, SIGNAL(clicked()),
+      signalMapper, SLOT (map()));
+      connect(accountFileButton, SIGNAL(clicked()),
+      signalMapper, SLOT (map()));
+      connect(reportFileButton, SIGNAL(clicked()),
+      signalMapper, SLOT (map()));*/
+  
   //  this works so long as we dont try to connect in QtDesigner
   /*  connect(d->t_02, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_04, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_08, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_12, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_18, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_24, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_40, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
-  connect(d->t_80, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_04, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_08, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_12, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_18, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_24, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_40, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
+      connect(d->t_80, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
   */
 
   /*  if (d->t_00->isChecked()) {; //just test setting of the checkbox
     PrintMethod(QString("checktrue"));
     }*/
   d->orientationComboBox->setEnabled(false);
-
+  
   connect(d->DatasetLabelsOn, SIGNAL(clicked()), SLOT(SetLabels()));
   connect(d->setTimeContrastLayoutButton, SIGNAL(clicked()), SLOT(SetTimeContrastLayout()));
   connect(d->setMultiContrastLayoutButton, SIGNAL(clicked()), SLOT(SetMultiContrastLayout()));
   connect(d->setOrthogonalLayoutButton, SIGNAL(clicked()), SLOT(SetOrthogonalLayout()));
-
+  connect(d->setDual3DLayoutButton, SIGNAL(clicked()), SLOT(SetDual3DLayout()));
+  
   //  connect(d->LoadDataButton, SIGNAL(released()), SLOT(CallPerlScriptAndLoadMRML()));
   connect(d->LoadDataButton, SIGNAL(released()), SLOT(BuildScene()));
 //  connect(d->LoadDataButton, SIGNAL(released()), SLOT(OrientationTest()));
@@ -244,9 +245,12 @@ void qSlicerGalleryControlModuleWidget::SetTimeContrastLayout()
   this->GalleryTimepoints=3;
   this->GalleryContrasts=2;
   this->GalleryOrientations=1;
-
+  this->Gallery2DViews=6;
+  this->Gallery3DViews=0;
 
   this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
   return ;
 }
 
@@ -260,9 +264,12 @@ void qSlicerGalleryControlModuleWidget::SetMultiContrastLayout()
   this->GalleryTimepoints=1;
   this->GalleryContrasts=4;
   this->GalleryOrientations=1;
-
+  this->Gallery2DViews=4;
+  this->Gallery3DViews=0;
 
   this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
   return ;
 }
 void qSlicerGalleryControlModuleWidget::SetOrthogonalLayout()
@@ -275,12 +282,34 @@ void qSlicerGalleryControlModuleWidget::SetOrthogonalLayout()
   this->GalleryTimepoints=1;
   this->GalleryContrasts=1;
   this->GalleryOrientations=3;
-
+  this->Gallery2DViews=3;
+  this->Gallery3DViews=1;
 
   this->PrintMethod("Setting Layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
   return;
 }
-
+void qSlicerGalleryControlModuleWidget::SetDual3DLayout()
+{
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(true);
+  this->PrintMethod(QString("Dual3D"));
+  this->Layout=QString("Dual3D");
+  /* could use special code for GalleryTimepoints to check the 
+     number of timepoints and contrasts in build mrml such that 
+     we can do either 2 timepoints or two contrats*/
+  this->GalleryTimepoints=2;
+  this->GalleryContrasts=1;
+  this->GalleryOrientations=1;
+  this->Gallery2DViews=3;
+  this->Gallery3DViews=2;
+  this->PrintMethod("Setting Layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
+  return;
+}
 void qSlicerGalleryControlModuleWidget::SetLabels()
 {
   Q_D(qSlicerGalleryControlModuleWidget);
@@ -319,8 +348,8 @@ void qSlicerGalleryControlModuleWidget::SetCheckBox()
 void qSlicerGalleryControlModuleWidget::OrientationTest() 
 {
   QString orientation="Coronal"; // this could be axial or sagittal. it gets set by a qt qui setting in my production code
-  QStringList sliceNodes;
-  sliceNodes << "Red"
+  QStringList sceneNodes;
+  sceneNodes << "Red"
              << "Yellow"
              << "Green"
              << "Slice4"
@@ -329,7 +358,7 @@ void qSlicerGalleryControlModuleWidget::OrientationTest()
   vtkMRMLScene* currentScene = this->mrmlScene();
   currentScene->InitTraversal();
   int viewerNum=0;
-  QString sliceNodeID=QString("vtkMRMLSlice")+sliceNodes[viewerNum]; // this line was the source of my error, it original said vtkMRMLSlice   instead of vtkMRMLSliceNode.
+  QString sliceNodeID=QString("vtkMRMLSlice")+sceneNodes[viewerNum]; // this line was the source of my error, it original said vtkMRMLSlice   instead of vtkMRMLSliceNode.
   vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
   vtkMRMLSliceNode *sliceNode;
   if ( sn != NULL )
@@ -353,12 +382,12 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   Q_D(qSlicerGalleryControlModuleWidget); //i think the Q_D line connects us back to our parent widget
 
   // last minute settings read
-  QStringList timepointList =this->GetTimepoints();
-  QStringList contrastList  =this->GetContrasts();
-  QString     orientation   =d->orientationComboBox->currentText(); //meaningless for orthagonol layout
-  QString labelFile;
-  QString imageFile;
-  QString nodeName;
+  QStringList timepointList = this->GetTimepoints();
+  QStringList contrastList  = this->GetContrasts();
+  QString     orientation   = d->orientationComboBox->currentText(); //meaningless for orthagonol layout
+  QString     labelFile;
+  QString     imageFile;
+  QString     nodeName;
   QStringList imageList;
   QStringList labelList;
   //DataPath
@@ -369,90 +398,23 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   ////
   // initialize scene
   ////
-  //  int viewers=GalleryTimepoints*GalleryContrasts*GalleryOrientations;
-  //create viewnode.
-  //  vtkMRMLScene* display=new vtkMRMLScene; //dindnt work
-  qSlicerApplication * s_app_obj = qSlicerApplication::application();
-  //status=s_app_obj->ioManager()->loadScene(out_path);   // out_path is a qstring here.
-  
-  //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
+  qSlicerApplication * s_app_obj = qSlicerApplication::application(); //set application linking.
 
-  // Read the labelmap segmentation
-//   qSlicerIO::IOProperties parameters;
-//   parameters["fileName"] = QString(d_ptr->segFolder->text());
-//   parameters["labelmap"] = true;
-//   parameters["centered"] = true;
-//   qSlicerCoreApplication::application()->coreIOManager()->loadNodes(qSlicerIO::VolumeFile, parameters);
-  
-  // TimeContrast is
-  // 123
-  // 456
-  // ryg
-  // 456
-  // MultiContrast is
-  // 12
-  // 34
-  // ry
-  // g1
-  // Orthogonal i s
-  // 12
-  // 34
-  
   bool setSliceOrient=true;
-//  qSlicerAppMainWindow main=
+  if (this->GalleryOrientations==3) 
+    { 
+    setSliceOrient=false;
+    }
+
   vtkMRMLScene* currentScene = this->mrmlScene();
   currentScene->InitTraversal();
-  vtkMRMLLayoutNode* sceneLayoutNode = vtkMRMLLayoutNode::SafeDownCast(  
-    currentScene->GetNextNodeByClass("vtkMRMLLayoutNode")); // correct method it would appear to get the layout. Will probably fail if more than one layout is allowed. Oh well for now.
-// vtkMRMLLayoutNode* sceneLayoutNode=qSlicerApplication::layoutManager();// bad code
-// vtkMRMLLayoutNode* sceneLayoutNode=qSlicerApplication->layoutManager();// bad code
-  QStringList sliceNodes;
-  if (Layout=="TimeContrast") 
-    {
-    //Three over three
-    sliceNodes << "Red"
-               << "Yellow"
-               << "Green"
-               << "Slice4"
-               << "Slice5"
-               << "Slice6";
-    //vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView
-    this->PrintText("Layout should have 6 volumes");
-    //sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutInitialView);
-    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
-    } 
-  else if ( Layout=="MultiContrast") 
-    {
-    //Two over Two
-    sliceNodes << "Red"
-               << "Yellow"
-               << "Green"
-               << "Slice1";
-    //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
-    this->PrintText("Layout should have 4 volumes");
-    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
-    } 
-  else if( Layout=="Orthogonal") 
-    {
-    //Four-Up
-    sliceNodes << "Red"
-	       << "Yellow"
-	       << "Green";
-    setSliceOrient=false;
-    //vtkMRMLLayoutNode::SlicerLayoutFourUpView
-    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
-    this->PrintText("Layout should have 1 volumes");
-    }
-  else 
-    {
-    this->PrintText(QString("Bad layout selection "+Layout));
-    }
+  currentScene->GetNextNodeByClass("vtkMRMLLayoutNode"); // correct method it would appear to get the layout. Will probably fail if more than one layout is allowed. Oh well for now.
+  
   QStringList orthogonalOrientations;
   orthogonalOrientations << "Axial"
                          << "Sagittal"
                          << "Coronal";
   int viewerNum=0;
-//      scNode->SetLinkedControl(1);
   for (int c=0;c<contrastList.size();c++) 
     {
     for (int t=0;t<timepointList.size(); t++) 
@@ -478,7 +440,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       this->PrintText("image="+imageFile);
       // set viewer orientation, 
       currentScene->InitTraversal();
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+sliceNodes[viewerNum];
+      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
       vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
       vtkMRMLSliceNode *sliceNode;
       if ( sn != NULL ) 
@@ -555,8 +517,8 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       {
       //add node, load data and assign to node, load labels and assign to node
 //      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+sliceNodes[viewerNum];
-      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+sliceNodes[viewerNum];
+      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
+      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
@@ -631,17 +593,32 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       viewerNum++;
       }
     }
-  //
+//code to loop for node type
+//   currentScene->InitTraversal();
+//   vtkIndent indent= vtkIndent(5);
+//   //show slice nodes
+//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
+//     {
+//       sn->PrintSelf(std::cout,indent);
+//     }
+//   //show 3d view nodes
+//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLViewNode"));)
+//     {
+//       sn->PrintSelf(std::cout,indent);
+//     }
+
+  // handle setting orthagonal views to correct orientation
   if (!setSliceOrient) 
     {
     this->PrintText("\n\n\nOrthogonal set.\n\n\n");
-    for (  viewerNum=0;viewerNum<sliceNodes.size();viewerNum++) 
+//    for (  viewerNum=0;viewerNum<SceneNodes.size();viewerNum++) //this code doesnt work with both 2d and 3d views in SceneNodes
+    for (  viewerNum=0;viewerNum<Gallery2DViews;viewerNum++) 
       {
       int t=0; 
       int c=0;
       orientation=orthogonalOrientations[viewerNum];
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+sliceNodes[viewerNum];
-      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+sliceNodes[viewerNum];
+      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
+      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
@@ -675,6 +652,46 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         scNode->SetLabelVolumeID(NULL);
         }
       }
+    }
+  //  if (GalleryTimepoints*GalleryViewers<Gallery2DViews) 
+  if(this->Layout=="Dual3D")
+    {//should only run on dual3d view. lets just hardcode that.
+    int t=0; 
+    int c=0;
+    orientation=orthogonalOrientations[viewerNum];
+    QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
+    QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
+    vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+    vtkMRMLSliceNode *sliceNode;
+    sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
+    vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
+
+    imageFile=DataPattern;
+    imageFile.replace("timepoint",timepointList[t]);
+    imageFile.replace("contrast",contrastList[c]);
+    imageFile.replace(".nii","");
+    /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+    nodeName=imageFile;    
+    imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+    this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
+
+    vtkMRMLSliceCompositeNode *scNode;
+    scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
+    sliceNode->SetOrientation(orientation.toLatin1());
+    scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
+    t=t+1;
+//    orientation=orthogonalOrientations[viewerNum];
+    sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
+    sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
+
+    imageFile=DataPattern;
+    imageFile.replace("timepoint",timepointList[t]);
+    imageFile.replace("contrast",contrastList[c]);
+    imageFile.replace(".nii","");
+    /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+    nodeName=imageFile;    
+    scNode->SetForegroundVolumeID(this->NodeID(nodeName)); //load
+    sliceNode->SetOrientation(orientation.toLatin1());
     }
   return;
 }
@@ -1009,14 +1026,20 @@ void qSlicerGalleryControlModuleWidget::ShowNodesInScene() //vtkMRMLScene *)
     }
   currentScene->InitTraversal();
   vtkIndent indent= vtkIndent(5);
+  //show slice nodes
   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
+    {
+      sn->PrintSelf(std::cout,indent);
+    }
+  //show 3d view nodes
+  for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLViewNode"));)
     {
       sn->PrintSelf(std::cout,indent);
     }
 }
 
 
-void qSlicerGalleryControlModuleWidget::SetLayout() 
+QStringList qSlicerGalleryControlModuleWidget::SetLayout()  //QString layout
 {
   vtkMRMLScene* currentScene = this->mrmlScene();  
   bool setSliceOrient=true;
@@ -1025,11 +1048,11 @@ void qSlicerGalleryControlModuleWidget::SetLayout()
   currentScene->InitTraversal();
   vtkMRMLLayoutNode* sceneLayoutNode = vtkMRMLLayoutNode::SafeDownCast(
     currentScene->GetNextNodeByClass("vtkMRMLLayoutNode") );
-  QStringList sliceNodes;
-  if (Layout=="TimeContrast") 
+  QStringList sceneNodes;
+  if (this->Layout=="TimeContrast") 
     {
     //Three over three
-    sliceNodes << "Red"
+    sceneNodes << "Red"
                << "Yellow"
                << "Green"
                << "Slice4"
@@ -1038,33 +1061,47 @@ void qSlicerGalleryControlModuleWidget::SetLayout()
     //vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView
     this->PrintText("Layout should have 6 volumes");
     //sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutInitialView);
-    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
     } 
-  else if ( Layout=="MultiContrast") 
+  else if ( this->Layout=="MultiContrast") 
     {
     //Two over Two
-    sliceNodes << "Red"
+    sceneNodes << "Red"
                << "Yellow"
                << "Green"
                << "Slice1";
     //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
     this->PrintText("Layout should have 4 volumes");
-    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
     } 
-  else if( Layout=="Orthogonal") 
+  else if( this->Layout=="Orthogonal") 
     {
     //Four-Up
-    sliceNodes << "Red"
+    sceneNodes << "Red"
 	       << "Yellow"
-	       << "Green";
+	       << "Green"
+               << "1";
     setSliceOrient=false;
     //vtkMRMLLayoutNode::SlicerLayoutFourUpView
     sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutFourUpView);
     this->PrintText("Layout should have 1 volumes");
     }
+  else if ( this->Layout=="Dual3D") 
+    {
+    sceneNodes << "Red"   
+	       << "Green"  // cheap trick, change slice order, so left is dataset1, and right is dataset2.
+	       << "Yellow"
+	       << "1"
+	       << "2";
+    setSliceOrient=true;
+    //vtkMRMLLayoutNode::SlicerLayoutFourUpView
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutDual3DView);
+    this->PrintText("Layout should have 2 volumes");
+    
+    }
   else 
     {
     this->PrintText(QString("Bad layout selection "+Layout));
     }
-  return;
+  return sceneNodes;
 }
