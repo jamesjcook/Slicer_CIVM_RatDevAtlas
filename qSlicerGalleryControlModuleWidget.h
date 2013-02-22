@@ -95,7 +95,7 @@ public slots:
   QStringList GetContrasts();    //will look up all the checkboxes in contrasts group and make a qstringlist of values
   QStringList GetTimepoints();   // will look up all the checkboxes in timepionts gorup and make a qstringlist of values. 
   bool NodeExists(QString);      // checks scene for existing node with given name. Used in the build scene fucntion to avoid reloading data.
-
+  void SetViewNodeProperties(QString); //Sets the view properties for a given view node string
 protected:
   QScopedPointer<qSlicerGalleryControlModuleWidgetPrivate> d_ptr;
   virtual void setup();

@@ -181,6 +181,10 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->DataPattern  =QString("ptimepoint_average_contrast.nii");
   this->LabelPattern =QString("pndtimepoint_average_labels.nii");
 
+  QString out_path = DataPath+"/Blank.mrml";
+  qSlicerApplication * app = qSlicerApplication::application();
+  app->ioManager()->loadScene(out_path);
+  
 
   // these connections were setup in the *.ui file, but that seems to have been broken
   /*  connect(d->setTimeContrastLayoutButton, SIGNAL(released()),
@@ -385,11 +389,19 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   QStringList timepointList = this->GetTimepoints();
   QStringList contrastList  = this->GetContrasts();
   QString     orientation   = d->orientationComboBox->currentText(); //meaningless for orthagonol layout
-  QString     labelFile;
-  QString     imageFile;
-  QString     nodeName;
-  QStringList imageList;
-  QStringList labelList;
+  QString     labelFile;     //singular label file var
+  QString     labelPath;     //singular label path var
+  QString     imageFile;     //singular image file var
+  QString     imagePath;     //singular image path
+  QString     nodeName;      //singular var for imagefile on load
+  QString     labelNode;     //node name for the label node
+  QList <qSlicerIO::IOProperties> imageProperties; // container to hold all the properties(including name,path,nodename) of images to have open 
+  QList <qSlicerIO::IOProperties> labelProperties; // container to hold all the properties(including name,path,nodename) of labels to have open will have an entry for each image element of imageProperties
+//  QStringList imageFileList; //list of image files to load.
+//  QStringList imagePathList; //list of image file paths to load.
+//  QStringList labelFileList; //list of label files to load.
+//  QStringList labelPathList; //list of label files to load.
+  QList <qSlicerIO::IOProperties> unloadedFiles; //container for the parameters of unloadedfiles. 
   //DataPath
   //LabelPath
   //DataPattern (replace timeptint with numbers and contrast with abreviation)
@@ -414,216 +426,225 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   orthogonalOrientations << "Axial"
                          << "Sagittal"
                          << "Coronal";
-  int viewerNum=0;
+
+
+  //build list of files to load.
   for (int c=0;c<contrastList.size();c++) 
     {
     for (int t=0;t<timepointList.size(); t++) 
       {
-      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
-      //add node, load data and assign to node, load labels and assign to node
-      //volume
-      //add vtkMRMLScalarVolumeNode  
-      //label
-      //add vtkMRMLVolumeNode
-      //slice
-      //add vtkMRMLSliceNode
-      
+      // add data to file list
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
-      /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
+//      imageFileList << imageFile;
+      //confusingly DataPath is root to data directories
+      imagePath = DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+//      imagePathList << imagePath;
       nodeName=imageFile;
       nodeName.replace(".nii","");
-      imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
-      //QFileInfo(QDir directory, QString fileName), QFileInfo::suffix(), QFileInfo::absoluteFilePath()...
-      //imageFile=QFileInfo(DataPath,timepointList[t],average,imageFile);
-      this->PrintText("image="+imageFile);
-      // set viewer orientation, 
-      currentScene->InitTraversal();
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
-      vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
-      vtkMRMLSliceNode *sliceNode;
-      if ( sn != NULL ) 
-        { 
-        sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
+      
+      qSlicerIO::IOProperties tParams; //temp params 
+      tParams["fileName"]       = imagePath;
+      tParams["nodeName"]       = nodeName;
+      tParams["labelmap"]       = false;
+      tParams["center"]         = true;
+      tParams["autoWindowLevel"]= false;
+      tParams["fileType"]="VolumeFile";
+      labelFile=LabelPattern;
+      labelFile.replace("timepoint",timepointList[t]);
+//      labelFileList << labelFile;
+      //confusingly LabelPath is root to label root
+      labelPath = LabelPath+"/"+labelFile;
+//      labelPathList << labelPath;      
+      labelNode=labelFile;
+      labelNode.replace(".nii","");
+      tParams["labelNode"]      =labelNode; //will end up as duplicate of nodeName in the labelProperties entries, but this is easier.
+      imageProperties << tParams;
+      this->PrintText("imageProperties << "+imageFile);
+
+      if( LoadLabels )
+        {
+        nodeName                   = labelNode;
+        tParams["fileName"]        = labelPath;
+        tParams["nodeName"]        = nodeName;
+        tParams["labelmap"]        = true;     
+        tParams["center"]          = true;    
+        tParams["autoWindowLevel"] = false;
+        labelProperties << tParams;
+        this->PrintText("labelProperties << "+labelFile);
+        }
+      }
+    }
+
+  int snCounter;
+  //loop for all images to add only unloaded to load list
+  for(snCounter=0;snCounter<imageProperties.size();snCounter++)
+    {
+    if ( ! NodeExists(imageProperties[snCounter]["nodeName"].toString()) )
+      {
+      unloadedFiles << imageProperties[snCounter];
+      } 
+    }
+  //loop for all labels to add only unloaded to load list need to do a unique element on this list... (bleh), the qset might do the trick
+  QSet<QString> labelNodes;
+  for(snCounter=0;snCounter<labelProperties.size();snCounter++)
+    {
+    if ( ! NodeExists(labelProperties[snCounter]["nodeName"].toString()) )
+      {
+      this->PrintText("-");
+      if( labelNodes.isEmpty() ) 
+        {
+        this->PrintText(" +");
+        unloadedFiles << labelProperties[snCounter];
+        labelNodes << labelProperties[snCounter]["nodeName"].toString(); 
         } 
       else 
         {
-        this->PrintText("Bad slice node id"+sliceNodeID);
-        return;
-        }
-      if(setSliceOrient)
-        {
-        this->PrintText("Setting orientation to "+orientation);        
-        sliceNode->SetOrientation(orientation.toLatin1());
-        }
-// if data not loaded, load
-      if ( ! NodeExists(nodeName) ) 
-        { //if nodename no exist
-        qSlicerIO::IOProperties imParameters;     
-        imParameters["fileName"] = imageFile;      
-        imParameters["labelmap"] = false;     
-	imParameters["center"] = true;    
-	imParameters["autoWindowLevel"] = false;
-	//imParameters["fileType"] = "VolumeFile";
-	//qSlicerCoreApplications::application()->coreIOManager()->loadNodes(QString("VolumeFile"), imParameters); //qSlicerIO::VolumeFile
-	s_app_obj->coreIOManager()->loadNodes(QString("VolumeFile"), imParameters); //qSlicerIO::VolumeFile
-        }
-      if( LoadLabels )
-        { 
-        labelFile=LabelPattern;
-        labelFile.replace("timepoint",timepointList[t]);
-        nodeName=labelFile;
-        nodeName.replace(".nii","");
-	labelFile=LabelPath+"/"+labelFile;
-//      QDir 
-//      labelFile=QFileInfo(LabelPath,labelFile);
-        this->PrintText("label="+labelFile);
-	//loaddata assign as labels to viewer viewerNum
-	if ( ! NodeExists(nodeName) ) 
-          { 
-          qSlicerIO::IOProperties laParameters;     
-          laParameters["fileName"] = labelFile;      
-          laParameters["labelmap"] = true;     
-	  laParameters["center"] = true;    
-	  laParameters["autoWindowLevel"] = false;
-	  s_app_obj->coreIOManager()->loadNodes(QString("VolumeFile"), laParameters); //qSlicerIO::VolumeFile, 
+        this->PrintText("-- ");
+        if( ! labelNodes.contains(labelProperties[snCounter]["nodeName"].toString()) ) 
+          {
+          this->PrintText("adding "+labelProperties[snCounter]["nodeName"].toString()+"to loadlist");
+          unloadedFiles << labelProperties[snCounter];
+          labelNodes << labelProperties[snCounter]["nodeName"].toString();
+          }
+        else 
+          {
+          this->PrintText("  XXXXXX");
           }
         }
-      viewerNum++;
+      }
+    else 
+      {
+      this->PrintText("Found label"+labelProperties[snCounter]["nodeName"].toString());
       }
     }
+  //load data
+  s_app_obj->coreIOManager()->loadNodes(unloadedFiles); // images
+  
   ////
   //arrange objects.
   ////
-  // vtkMRMLNode method   UpdateReferenceID
-  //  ShowNodesInScene();
-  
-  //currentScene
-  //sliceNode = vtkMRMLSliceCompositeNode::SafeDownCast(sn);
-  //  vtkMRMLAbstractViewNode display= vtkMRMLAbstractViewNode();
-  //  display->
-  
-//   QStringList nodeTypes=currentScene->GetNodeClasses();
-  
-//   for(int nt=0;nt<nodeTypes.size;nt++) {
-//     this->PrintText("Node types in scene"+nodeTypes[nt]);
-//   }
-  
-  viewerNum=0;
-  for (int c=0;c<contrastList.size();c++) 
+  //assign slices
+  //assign 3d windows, 
+  //for now just set properties in 3d views, rather than setting the volume settings.
+  snCounter=0;
+  for (snCounter=0;snCounter<SceneNodes.size();snCounter++) 
     {
-    for (int t=0;t<timepointList.size(); t++) 
+    QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
+    QString viewNodeID =QString("vtkMRMLViewNode") +SceneNodes[snCounter];
+    QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
+    vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
+    vtkMRMLSliceNode *sliceNode = NULL;
+    if ( sn != NULL ) 
+      { 
+      sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
+      } 
+    else 
       {
-      //add node, load data and assign to node, load labels and assign to node
-//      this->PrintText("Contrastlist"+contrastList[c]+QString("%1").arg(c)+"/"+QString("%1").arg(contrastList.size())+ "timepointList"+timepointList[t]+QString("%1").arg(t)+"/"+QString("%1").arg(timepointList.size()));
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
-      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
-      imageFile=DataPattern;
-      imageFile.replace("timepoint",timepointList[t]);
-      imageFile.replace("contrast",contrastList[c]);
-      imageFile.replace(".nii","");
-      /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
-      nodeName=imageFile;
-      nodeName.replace(".nii","");
-      imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
-      this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
-//      currentScene->InitTraversal(); // this did not fix the crash problem :(
-      vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
-      vtkMRMLSliceNode *sliceNode;
-      if ( sn != NULL ) 
-        { 
-        sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
-        } 
-      else 
-        {
-        this->PrintText("Bad slice node id"+sliceNodeID);
-        return;
-        }
-      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
-      vtkMRMLSliceCompositeNode *scNode;
-      if ( sliceNode != NULL ) 
-        { 
-        this->PrintText("Slicenode set");
-        }
-      else
-        {
-        this->PrintText("Error setting slicenode");
-        return;
-        }
-      if ( scn != NULL )   //&& sliceNodeID == "" vtkMRMLSliceCompositeNodeRed
-        {
-	scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
-        } 
-      else 
-        { 
-	this->PrintText("Error setting composite node ID");
-        return;
-        }
-      if ( scNode != NULL ) 
-        { //vtkMRMLSliceCompositeNodeRed
-	this->PrintText("SliceComposite ready:"+sliceCompositeNodeID);
-        }
-      else 
-        {
-        this->PrintText("SliceComposite bad:"+sliceCompositeNodeID);
-        return;
-        }
-      scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
-      if( LoadLabels )
-        { 
-	labelFile=LabelPattern;
-	labelFile.replace("timepoint",timepointList[t]);
-	nodeName=labelFile;
-	nodeName.replace(".nii","");
-	labelFile=LabelPath+"/"+labelFile;
-	scNode->SetLabelVolumeID(this->NodeID(nodeName));	
-//        scNode->vtkSetMacro(SetLabelMapOpacity(0.10));
-        scNode->SetLabelOpacity(0.25);
-        } 
-      else 
-        {
-        scNode->SetLabelVolumeID(NULL);
-        }
+      this->PrintText("Bad slice node or no slice node for SceneNode: "+sliceNodeID);
+      }
+    vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
+    vtkMRMLSliceCompositeNode *scNode = NULL;
+//     if ( sliceNode != NULL ) 
+//       { 
+//       this->PrintText("Slicenode set");
+//       }
+//     else
+//       {
+//       this->PrintText("Error setting slicenode");
+//       return;
+//       }
+
+    if ( scn != NULL )//node existed try to downcast
+      {
+      scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
+      } 
+    else 
+      { 
+      this->PrintText("Bad composite node or no composite node for SceneNode"+sliceCompositeNodeID);
+      }
+    
+    //<>//
+    if ( scNode != NULL )  //if we have a composinte node sucessfully downcast
+      { //vtkMRMLSliceCompositeNode
+      this->PrintText("SliceComposite ready:"+sliceCompositeNodeID);
       if(setSliceOrient) 
-	{
+        {
         scNode->SetLinkedControl(1);
-//         sliceNode->vtkSetStringMacro(orientation.toLatin1());
-	}
-      viewerNum++;
+        sliceNode->SetOrientation(orientation.toLatin1());
+        }
+      else 
+        {
+        if(snCounter<orthogonalOrientations.size())
+          {
+          sliceNode->SetOrientation(orthogonalOrientations[snCounter].toLatin1());
+          }
+        else 
+          {
+          this->PrintText("Do not know what to do with orientation. Not setting.");
+          }
+        }
+      //<<.>>//
+      if(snCounter<imageProperties.size()) //prevents bad index crash
+        {
+        scNode->SetBackgroundVolumeID(this->NodeID(imageProperties[snCounter]["nodeName"].toString())); //load
+        if( LoadLabels )
+          { 
+          scNode->SetLabelVolumeID(this->NodeID(labelProperties[snCounter]["nodeName"].toString()));	
+          scNode->SetLabelOpacity(0.25); 
+          } 
+        else 
+          {
+          scNode->SetLabelVolumeID(NULL);
+          }
+        }
+      else 
+        { //there are more scenenodes than there are volumes. This happens for 2 of our galleries at current, the Dual3D compare and the othogonal.
+        //ifnodis yellow, 
+        if ( SceneNodes[snCounter]=="yellow" ) 
+          {//should only run on dual3d
+          scNode->SetForegroundVolumeID(this->NodeID(imageProperties[1]["nodeName"].toString())); //load
+          scNode->SetForegroundOpacity(0.50);
+          }
+        }
+      //end check for good scNode
+      }
+    else 
+      { //we'll enter this code if we are on orthogonal or dual3d for the 3d volumes
+      this->PrintText("SliceComposite bad:"+sliceCompositeNodeID+" could not downcast!");
+      }
+    
+    vtkMRMLNode     *vn       = currentScene->GetNodeByID(viewNodeID.toStdString());
+//    vtkMRMLViewNode *vNode;
+    if ( vn != NULL )
+      {
+//      vNode = vtkMRMLViewNode::SafeDownCast(vn); //Composite
+      this->SetViewNodeProperties(viewNodeID);
+      } 
+    else
+      {
+      this->PrintText("Bad view node or not a view node"+viewNodeID);
       }
     }
-//code to loop for node type
-//   currentScene->InitTraversal();
-//   vtkIndent indent= vtkIndent(5);
-//   //show slice nodes
-//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLSliceNode"));)
-//     {
-//       sn->PrintSelf(std::cout,indent);
-//     }
-//   //show 3d view nodes
-//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNodeByClass("vtkMRMLViewNode"));)
-//     {
-//       sn->PrintSelf(std::cout,indent);
-//     }
-
+    
+/*
   // handle setting orthagonal views to correct orientation
   if (!setSliceOrient) 
     {
     this->PrintText("\n\n\nOrthogonal set.\n\n\n");
-//    for (  viewerNum=0;viewerNum<SceneNodes.size();viewerNum++) //this code doesnt work with both 2d and 3d views in SceneNodes
-    for (  viewerNum=0;viewerNum<Gallery2DViews;viewerNum++) 
+//    for (  snCounter=0;snCounter<SceneNodes.size();snCounter++) //this code doesnt work with both 2d and 3d views in SceneNodes
+    for (  snCounter=0;snCounter<Gallery2DViews;snCounter++) 
       {
       int t=0; 
       int c=0;
-      orientation=orthogonalOrientations[viewerNum];
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
-      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
+      orientation=orthogonalOrientations[snCounter];
+      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
+      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
       imageFile=DataPattern;
       imageFile.replace("timepoint",timepointList[t]);
       imageFile.replace("contrast",contrastList[c]);
       imageFile.replace(".nii","");
-      /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
       nodeName=imageFile;
       nodeName.replace(".nii","");
       imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
@@ -653,14 +674,15 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         }
       }
     }
-  //  if (GalleryTimepoints*GalleryViewers<Gallery2DViews) 
+*/
+/*  //  if (GalleryTimepoints*GalleryViewers<Gallery2DViews) 
   if(this->Layout=="Dual3D")
     {//should only run on dual3d view. lets just hardcode that.
     int t=0; 
     int c=0;
-    orientation=orthogonalOrientations[viewerNum];
-    QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
-    QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
+    orientation=orthogonalOrientations[snCounter];
+    QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
+    QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
     vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
     vtkMRMLSliceNode *sliceNode;
     sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
@@ -670,8 +692,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
     imageFile.replace("timepoint",timepointList[t]);
     imageFile.replace("contrast",contrastList[c]);
     imageFile.replace(".nii","");
-    /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
-    nodeName=imageFile;    
+     nodeName=imageFile;    
     imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
     this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
 
@@ -680,19 +701,19 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
     sliceNode->SetOrientation(orientation.toLatin1());
     scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
     t=t+1;
-//    orientation=orthogonalOrientations[viewerNum];
-    sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[viewerNum];
-    sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[viewerNum];
+//    orientation=orthogonalOrientations[snCounter];
+    sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
+    sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
 
     imageFile=DataPattern;
     imageFile.replace("timepoint",timepointList[t]);
     imageFile.replace("contrast",contrastList[c]);
     imageFile.replace(".nii","");
-    /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
     nodeName=imageFile;    
     scNode->SetForegroundVolumeID(this->NodeID(nodeName)); //load
     sliceNode->SetOrientation(orientation.toLatin1());
     }
+*/
   return;
 }
 
@@ -810,13 +831,13 @@ bool qSlicerGalleryControlModuleWidget::NodeExists(QString nodeName)
   currentScene->InitTraversal();
   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNode());) {
     if (sn->GetName()==nodeName) { 
-      this->PrintText("Found volume not reloading");
+      this->PrintText(""+nodeName +" found.");
       return true;
     } else { 
       //this->PrintText("examined node "+nameTemp+"not the same as "+nodeName);
     }
   }
-  this->PrintText("Did not find "+nodeName+" in open nodes.");
+  this->PrintText(""+nodeName+" not in open nodes.");
   return false;
 }
 
@@ -879,7 +900,7 @@ QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
   this->PrintText("Timepoints:"+QString::number(this->GalleryTimepoints));
   for(int i=0;i<elements;i++) {
     if ( Timepoints[i] == 1 && timepoints_found < this->GalleryTimepoints ) {
-      this->PrintText("checking timepoint"+ QString::number(i)+" match <"+QString::number(Timepoints[i])+">");      
+//      this->PrintText("checking timepoint"+ QString::number(i)+" match <"+QString::number(Timepoints[i])+">");      
       QString num = QString("%1").arg(i, 2, 10, QChar('0')).toUpper();
       timepoint_string = timepoint_string + num + "," ;
       timepoint_list<<num;
@@ -945,6 +966,87 @@ QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
   return contrast_list;
 }
 
+void qSlicerGalleryControlModuleWidget::SetViewNodeProperties(QString nodeName)
+{
+  vtkMRMLScene* currentScene = this->mrmlScene();
+  this->Superclass::setMRMLScene(currentScene);
+  
+  // Search the scene for the nodes set properties
+  currentScene->InitTraversal();
+  vtkMRMLNode *sn = currentScene->GetNodeByID(nodeName.toStdString());
+  vtkMRMLViewNode *vNode = NULL;
+//  qSlicerIO::IOProperties *viewNodeProps;
+  
+  if ( sn != NULL ) 
+    {    
+    vNode = vtkMRMLViewNode::SafeDownCast(sn); //Composite
+    
+    if ( vNode !=NULL ) 
+      {
+      this->PrintText("SET PROPERTIES FOR VIEWER HERE");
+     //do work
+      //viewNodeProps->id("vtkMRMLViewNode1");
+      //viewNodeProps->name(View1);
+      //viewNodeProps->hideFromEditors(false);
+      //viewNodeProps->selectable(true);
+      //viewNodeProps->selected(false);
+      //viewNodeProps->attributes(MappedInLayout:1);
+      //viewNodeProps->layoutLabel(1);
+      //viewNodeProps->layoutName(1);
+      //viewNodeProps->active(false);
+      //viewNodeProps->visibility(false);
+//      double bg1[3]={0.756863, 0.764706, 0.909804};
+      //      viewNodeProps->SetBackgroundColor(bg1);
+//      double bg2[3]={0.454902, 0.470588, 0.745098};
+      //      viewNodeProps->SetBackgroundColor2(bg2);
+      //      viewNodeProps->SetFieldOfView(200);
+      //      viewNodeProps->SetLetterSize(0.05);
+      //      viewNodeProps->SetBoxVisible(true);
+//      viewNodeProps->SetFiducialsVisible(true);
+//      viewNodeProps->SetFiducialLabelsVisible(true);
+//      viewNodeProps->SetAxisLabelsVisible(true);
+//      viewNodeProps->SetAxisLabelsCameraDependent(true);
+//      viewNodeProps->SetAnimationMode("Off");
+//      viewNodeProps->SetNviewAxisMode("LookFrom");
+//      viewNodeProps->SetSpinDegrees(2);
+//      viewNodeProps->SetSpinMs(5);
+//      viewNodeProps->SetSpinDirection("YawLeft");
+//      viewNodeProps->SetRotateDegrees(5);
+//      viewNodeProps->SetRockLength(200);
+//      viewNodeProps->SetRockCount(0);
+//      viewNodeProps->SetStereoType("NoStereo");
+//      viewNodeProps->SetRenderMode("Perspective");
+
+
+
+      }
+    else
+      {
+      this->PrintText("View node did not set properly!");
+      return;
+      }
+
+
+    }
+  else
+    {
+    this->PrintText("Bad view node or not a view node");
+    return;
+    }
+
+
+  
+//   for (vtkMRMLNode *sn = NULL; (sn=currentScene->GetNextNode());) {
+//     if (sn->GetName()==nodeName) { 
+//      this->PrintText(""+nodeName +" found.");
+//       return;
+//     } else { 
+//       //this->PrintText("examined node "+nameTemp+"not the same as "+nodeName);
+//     }
+//   }
+  this->PrintText(""+nodeName+" Properties Set.");
+  return;
+}
 
 void qSlicerGalleryControlModuleWidget::PrintMethod(const QString text)
 {
@@ -960,6 +1062,8 @@ void qSlicerGalleryControlModuleWidget::PrintText(const QString text)
   out << text<<"\n";
   return;
 }
+
+
 
 
 
