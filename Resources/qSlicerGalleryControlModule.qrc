@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="Images">
+    <file>Icons/MSComparison.tiff</file>
     <file>Icons/TwoByThreeD.tiff</file>
     <file>Icons/MultiContrast.tiff</file>
     <file>Icons/Orthagonal.tiff</file>

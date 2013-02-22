@@ -69,17 +69,20 @@ public:
   //  QStringList Scene2DNodes; 
   //  QStringList Scene3DNodes;
   int Gallery3DViews;     //number of 3d views on screen.
+  QString GalleryName;    // Name of the gallery
   QString Layout;         //String name of the layout to use.
   QString DataPath;       //path to data set in the setup function, will have to be 
                           //intelligently modified for the demo version. perhaps we'll just use system links for now.
   QString LabelPath;      //see datapath.
   QString DataPattern;    //pattern for data file to have parts replacd wit actual contrast and timepoint information. 
   QString LabelPattern;   //see datapattern
+  QString MSGender;       //controled through radio buttons
+  void ClearCheckboxes();  // clears timepoints and contrast bool arrays  
   void PrintMethod(QString);//print to console with constant text+message
   void PrintText(QString); //print to console
   QStringList SetLayout();       //defunct. function to change the layout.
   void ShowNodesInScene(); // defunct. Debug function to print node names in the scene. 
-  
+
   const char * NodeID(QString); //defunct.
 
 public slots:
@@ -87,13 +90,18 @@ public slots:
   void SetMultiContrastLayout(); //set variables for given layout
   void SetOrthogonalLayout();    //set variables for given layout
   void SetDual3DLayout();        //set variables for given layout
+  void SetMSComparisonLayout();  //set variables for given layout
   void SetLabels();              
   void CallPerlScriptAndLoadMRML(); //only function w hich relied onc alling the crummy piece of substitution perl. 
   void BuildScene();             //sets up mrml nodes loads data
   void OrientationTest();        //defunct.
   void SetCheckBox();            //defunct.
-  QStringList GetContrasts();    //will look up all the checkboxes in contrasts group and make a qstringlist of values
-  QStringList GetTimepoints();   // will look up all the checkboxes in timepionts gorup and make a qstringlist of values. 
+  void ChangeGallery();      // sets globals to MS settings
+  QStringList GetContrasts();    // will look up all the checkboxes in contrasts group and make a qstringlist of values
+  QStringList GetTimepoints();   // will look up all the checkboxes in timepionts group and make a qstringlist of values.
+  QString LookupMS(QString,QString);         // find ms patient id given timepoint and gender
+  QString LookupControl(QString, bool); // Find control data for a disease model comparison, has to look up the patient id.
+                                 // Age matched data for MS Patient, qstring is age(timepoint),  bool controls if gender must match
   bool NodeExists(QString);      // checks scene for existing node with given name. Used in the build scene fucntion to avoid reloading data.
   void SetViewNodeProperties(QString); //Sets the view properties for a given view node string
 protected:

@@ -22,6 +22,7 @@
 #include <QFileSystemWatcher>
 
 #include <QSignalMapper>
+//#include <QComboBox> //not needed, we already used one without this include
 
 // SlicerQt includes
 #include "qSlicerGalleryControlModuleWidget.h"
@@ -64,6 +65,7 @@
 #include <qMRMLSliceControllerWidget.h>
 #include <qMRMLThreeDWidget.h>
 #include <qMRMLThreeDViewControllerWidget.h>
+
 
 // MRML includes
 #include "vtkMRMLLinearTransformNode.h"
@@ -109,7 +111,8 @@
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLSliceLogic.h>
 
-
+// CTK includes
+//#include <ctkComboBox.h> //not needed we already used one without this include
 
 
 //qSlicerGalleryControlModlueWidget, class code
@@ -155,20 +158,14 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->PrintMethod(QString("setup"));
   Q_D(qSlicerGalleryControlModuleWidget);
   d->setupUi(this);
-  int elements=0;
+
+  this->ClearCheckboxes();
   this->Layout=QString("No_Layout");
   this->GalleryTimepoints=0;
   this->GalleryContrasts=0;
   this->GalleryOrientations=0;
   this->LoadLabels=false;
-  elements=(sizeof(Timepoints)/sizeof(bool));
-  for(int i=0;i<elements;i++) {
-    this->Timepoints[i]=0;
-  }
-  elements=(sizeof(Contrasts)/sizeof(bool));
-  for(int i=0;i<elements;i++) {
-    Contrasts[i]=0;
-  }
+
 
   /* Load data paths */
   /* hardcode for now*/
@@ -181,10 +178,16 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->DataPattern  =QString("ptimepoint_average_contrast.nii");
   this->LabelPattern =QString("pndtimepoint_average_labels.nii");
 
-  QString out_path = DataPath+"/Blank.mrml";
+
+
+
+  // using this mrml to initalize the 3d views for now, and then set to the first gallery setup.
+  QString out_path = DataPath+"/DoubleBlank.mrml";
   qSlicerApplication * app = qSlicerApplication::application();
   app->ioManager()->loadScene(out_path);
-  
+  out_path = DataPath+"/Blank.mrml";
+  app->ioManager()->loadScene(out_path);  
+
 
   // these connections were setup in the *.ui file, but that seems to have been broken
   /*  connect(d->setTimeContrastLayoutButton, SIGNAL(released()),
@@ -223,21 +226,84 @@ void qSlicerGalleryControlModuleWidget::setup()
   /*  if (d->t_00->isChecked()) {; //just test setting of the checkbox
     PrintMethod(QString("checktrue"));
     }*/
+  d->GallerySelectionComboBox->setCurrentIndex(0);
+  d->GallerySelectionStack->setCurrentIndex(d->GallerySelectionComboBox->currentIndex());
   d->orientationComboBox->setEnabled(false);
-  
+
   connect(d->DatasetLabelsOn, SIGNAL(clicked()), SLOT(SetLabels()));
   connect(d->setTimeContrastLayoutButton, SIGNAL(clicked()), SLOT(SetTimeContrastLayout()));
   connect(d->setMultiContrastLayoutButton, SIGNAL(clicked()), SLOT(SetMultiContrastLayout()));
   connect(d->setOrthogonalLayoutButton, SIGNAL(clicked()), SLOT(SetOrthogonalLayout()));
   connect(d->setDual3DLayoutButton, SIGNAL(clicked()), SLOT(SetDual3DLayout()));
-  
+  connect(d->setMSComparisonLayoutButton, SIGNAL(clicked()), SLOT(SetMSComparisonLayout()));
+  connect(d->GallerySelectionComboBox,SIGNAL(currentIndexChanged(int)),SLOT(ChangeGallery())); 
+
   //  connect(d->LoadDataButton, SIGNAL(released()), SLOT(CallPerlScriptAndLoadMRML()));
   connect(d->LoadDataButton, SIGNAL(released()), SLOT(BuildScene()));
+//  d->GallerySelectionComboBox->setCurrentIndex(0); // this should signal change gallery to run
+//  this->ChangeGallery();
+//  d->GallerySelectionStack->setCurrentIndex(d->GallerySelectionComboBox->currentIndex());  
+
 //  connect(d->LoadDataButton, SIGNAL(released()), SLOT(OrientationTest()));
+
+  //this has to happen after we've changed the combobox index or called change gallery
+  this->GalleryName = d->GallerySelectionComboBox->currentText();
   this->Superclass::setup();
 }
 
+QString qSlicerGalleryControlModuleWidget::LookupControl(QString  age, bool match_gender) 
+{ 
+  Q_D(qSlicerGalleryControlModuleWidget);
 
+  return "Control001"; 
+}
+QString qSlicerGalleryControlModuleWidget::LookupMS(QString  age, QString gender) 
+{ 
+  Q_D(qSlicerGalleryControlModuleWidget);
+
+  return "MS001"; 
+}
+void qSlicerGalleryControlModuleWidget::ChangeGallery()
+{// set the relevent data paths and pattern for each gallery
+ // this relies on the combobox and the stacked widget using the same page number/id number for galleries. 
+  Q_D(qSlicerGalleryControlModuleWidget);  
+  this->PrintMethod("ChangeGallery");
+  this->GalleryName = d->GallerySelectionComboBox->currentText();
+  d->GallerySelectionStack->setCurrentIndex(d->GallerySelectionComboBox->currentIndex());  
+  // assign the index of the selection box to the widget stack
+  if(this->GalleryName=="Rat Development Atlas")
+    {//Rat Development Atlas
+    this->DataPath=QString("/ratdevatlas");
+    this->LabelPath=QString(DataPath+"/labels/completed/completed_good_header/nii/");
+    //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
+    //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
+    this->DataPattern  =QString("ptimepoint_average_contrast.nii");
+    this->LabelPattern =QString("pndtimepoint_average_labels.nii");
+    }
+  else if (this->GalleryName=="Multiple Sclerosis")
+    {//Multiple Sclerosis
+
+    this->DataPath=QString("/MS_Library/ptypepid/");
+    this->LabelPath=QString(DataPath);
+    this->MSGender="female";
+    //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
+    //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
+    // ptype is patient type, MS or CONTROL, 
+    // pid is number, might modifiy to just have pid in future contining the ptype
+    // pstatus is processin status, nothing, _ss_ or _Rss_, 
+    // contrast is FLAIR T2 ADC FA L1 L2 L3 RD
+    
+    this->DataPattern  =QString("ptypepidpstatuscontrast.hdr");
+    this->LabelPattern =QString("ptypepid_regtype_regsub.hdr"); 
+    }
+  else
+    {
+    this->PrintText("Cannout understand gallery selection, there must be a typo or something.");
+    }
+  this->ClearCheckboxes();//doesnt clear the ui, just the settings behind the scene the ui connects with, this will let us use the same timepoint and contrast array for any library.
+  this->SetLayout();
+  return;
+}
 
 void qSlicerGalleryControlModuleWidget::SetTimeContrastLayout()
 {
@@ -313,6 +379,24 @@ void qSlicerGalleryControlModuleWidget::SetDual3DLayout()
 //  this->SceneNodes=this->SetLayout(this->Layout); 
   this->SceneNodes=this->SetLayout();
   return;
+}
+void qSlicerGalleryControlModuleWidget::SetMSComparisonLayout()
+{
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(true);
+  this->PrintMethod(QString("MSComparison"));
+  this->Layout=QString("MSComparison");
+  this->GalleryTimepoints=1;
+  this->GalleryContrasts=2;
+  this->GalleryOrientations=1;
+  this->Gallery2DViews=4;
+  this->Gallery3DViews=0;
+
+  this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
+  return ;
 }
 void qSlicerGalleryControlModuleWidget::SetLabels()
 {
@@ -435,14 +519,38 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       {
       // add data to file list
       imageFile=DataPattern;
-      imageFile.replace("timepoint",timepointList[t]);
-      imageFile.replace("contrast",contrastList[c]);
+      if(this->GalleryName=="Rat Development Atlas") 
+        {
+        imageFile.replace("timepoint",timepointList[t]);
+        imageFile.replace("contrast",contrastList[c]);
 //      imageFileList << imageFile;
       //confusingly DataPath is root to data directories
-      imagePath = DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+        imagePath = DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+        nodeName=imageFile;
+        nodeName.replace(".nii","");
+        }
+      else if ( this->GalleryName=="Multiple Sclerosis") 
+        {
+        QString patient=this->LookupMS(timepointList[t],MSGender);
+        QString control=this->LookupControl(patient,0);
+        imageFile.replace("timepoint",timepointList[t]);
+        imageFile.replace("contrast",contrastList[c]);
+        this->PrintText("MS not finished");
+        return;
+//      imageFileList << imageFile;
+      //confusingly DataPath is root to data directories
+        imagePath = DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+        nodeName=imageFile;
+        nodeName.replace(".hdr","");
+        }
+      else 
+        {
+        this->PrintText("Bad or unset GalleryName.");
+        return;
+        }
+           
 //      imagePathList << imagePath;
-      nodeName=imageFile;
-      nodeName.replace(".nii","");
+
       
       qSlicerIO::IOProperties tParams; //temp params 
       tParams["fileName"]       = imagePath;
@@ -860,7 +968,21 @@ const char * qSlicerGalleryControlModuleWidget::NodeID(QString nodeName)
   return "";
 }
 
-
+void qSlicerGalleryControlModuleWidget::ClearCheckboxes()
+{
+  this->PrintMethod(QString("ClearCheckboxes"));
+  Q_D(qSlicerGalleryControlModuleWidget);  
+  int elements=0;
+  elements=(sizeof(Timepoints)/sizeof(bool));
+  for(int i=0;i<elements;i++) {
+    this->Timepoints[i]=0;
+  }
+  elements=(sizeof(Contrasts)/sizeof(bool));
+  for(int i=0;i<elements;i++) {
+    Contrasts[i]=0;
+  }
+  return;
+}
 
 QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
 {
@@ -878,6 +1000,10 @@ QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
 		 <<"12"
 		 <<"18"
 		 <<"24"
+                 <<"33"
+                 <<"34"
+                 <<"53"
+                 <<"54"
 		 <<"40"
 		 <<"80"
     ;
@@ -891,6 +1017,10 @@ QStringList qSlicerGalleryControlModuleWidget::GetTimepoints()
   this->Timepoints[18]=d->t_18->isChecked();
   this->Timepoints[24]=d->t_24->isChecked();
   this->Timepoints[40]=d->t_40->isChecked();
+  this->Timepoints[33]=d->t_33->isChecked();
+  this->Timepoints[34]=d->t_34->isChecked();
+  this->Timepoints[53]=d->t_53->isChecked();
+  this->Timepoints[54]=d->t_54->isChecked();
   this->Timepoints[80]=d->t_80->isChecked();
  
   QString timepoint_string("");
@@ -946,16 +1076,29 @@ QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
   //  this->Contrasts[8]=d->c_->isChecked();
   //  this->Contrasts[9]=d->c_->isChecked();
 
-  QString contrast_string("");
+  //MS_LibraraySettings,(could do this better)
+  if (this->GalleryName=="Multiple Sclerosis") 
+    {
+    this->Contrasts[1]=d->MSC_ADC ->isChecked();
+    this->Contrasts[4]=d->MSC_FA  ->isChecked();
+    this->Contrasts[7]=d->MSC_MR  ->isChecked();
+    this->Contrasts[8]=d->MSC_RD  ->isChecked();
+    all_contrasts[1]="ADC";
+    all_contrasts[4]="FA";
+    all_contrasts[7]="FLAIR";
+    all_contrasts[8]="RD";
+    }
+//  QString contrast_string("");
   int contrasts_found=0;
   int elements=(sizeof(Contrasts)/sizeof(bool));
   this->PrintText("Contrasts:"+QString::number(this->GalleryContrasts));
   for(int i=0;i<elements;i++) {
-    if ( Contrasts[i] == 1 && contrasts_found < this->GalleryContrasts ) {
+    if ( Contrasts[i] == 1 && contrasts_found < this->GalleryContrasts ) 
+      {
       //      this->PrintText("checking contrast"+ QString::number(i)+" match <"+QString::number(Contrasts[i])+">");      
       //      QString num = all_contrasts[i];
       //      contrast_string = contrast_string + num + "," ;
-      contrast_string = contrast_string + all_contrasts[i] + "," ;
+      //contrast_string = contrast_string + all_contrasts[i] + "," ;
       contrast_list << all_contrasts[i];
       contrasts_found++;
     } else { 
@@ -1167,7 +1310,7 @@ QStringList qSlicerGalleryControlModuleWidget::SetLayout()  //QString layout
     //sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutInitialView);
     sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
     } 
-  else if ( this->Layout=="MultiContrast") 
+  else if ( this->Layout=="MultiContrast"|| this->Layout=="MSComparison") 
     {
     //Two over Two
     sceneNodes << "Red"
