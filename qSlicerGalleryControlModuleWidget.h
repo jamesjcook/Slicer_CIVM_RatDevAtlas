@@ -82,7 +82,9 @@ public:
   void PrintText(QString); //print to console
   QStringList SetLayout();       //defunct. function to change the layout.
   void ShowNodesInScene(); // defunct. Debug function to print node names in the scene. 
-
+  QStringList MSProcessLoadOrder;//load order for processed data, only used in ms gallery so far.
+  QStringList ContrastLoadOrder; // load order for contrast data if there are mutli entries, used in ms data for the MR contrast which ctransaltes to MR=Flair,T2; should fix that code or data to not do this. 
+  bool CenterVolumeOnLoad;      // variable to choose when to center on load, might not want that behavior in the future
   const char * NodeID(QString); //defunct.
 
 public slots:
@@ -90,6 +92,8 @@ public slots:
   void SetMultiContrastLayout(); //set variables for given layout
   void SetOrthogonalLayout();    //set variables for given layout
   void SetDual3DLayout();        //set variables for given layout
+  void SetMSSingleLayout();      //set variables for given layoutp
+  void SetMSDualLayout();        //set variables for given layout
   void SetMSComparisonLayout();  //set variables for given layout
   void SetLabels();              
   void CallPerlScriptAndLoadMRML(); //only function w hich relied onc alling the crummy piece of substitution perl. 
@@ -112,6 +116,7 @@ private:
   //  QSignalMapper *signalMapper;
   Q_DECLARE_PRIVATE(qSlicerGalleryControlModuleWidget);
   Q_DISABLE_COPY(qSlicerGalleryControlModuleWidget);
+  bool fexists(const char *);    //checks for file exists at path
 };
 
 #endif

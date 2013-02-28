@@ -81,6 +81,7 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLSliceCompositeNode.h"
 #include "vtkMRMLViewNode.h"
+//#include <Libs/MRML/Core/vtkMRMLViewNode.h> //testing this here for science that failed....
 #include "vtkMRMLAbstractViewNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 
@@ -114,10 +115,31 @@
 // CTK includes
 //#include <ctkComboBox.h> //not needed we already used one without this include
 
+//layout definitions
+
+
+const char* twoSliceView =
+  "<layout type=\"vertical\">"
+  " <item>"
+  "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+  "     <property name=\"orientation\" action=\"default\">Axial</property>"
+  "     <property name=\"viewlabel\" action=\"default\">R</property>"
+  "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+  "    </view>"
+  " </item>"
+  " <item>"
+  "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Green\">"
+  "     <property name=\"orientation\" action=\"default\">Sagittal</property>"
+  "     <property name=\"viewlabel\" action=\"default\">Y</property>"
+  "     <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
+  "    </view>"
+  " </item>"
+  "</layout>";
 
 //qSlicerGalleryControlModlueWidget, class code
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
+
 class qSlicerGalleryControlModuleWidgetPrivate: public Ui_qSlicerGalleryControlModule
 {
 public:
@@ -171,15 +193,17 @@ void qSlicerGalleryControlModuleWidget::setup()
   /* hardcode for now*/
   /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
   /* labels are at /DataPath/labels/completed/completed_good_header/nii/           */
-  this->DataPath=QString("/ratdevatlas");
-  this->LabelPath=QString(DataPath+"/labels/completed/completed_good_header/nii/");
+  
+  this->DataPath=QString("/ratdevatlas/timepoint/average/");
+  this->LabelPath=QString("/ratdevatlas/labels/completed/completed_good_header/nii/");
   //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
   //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
   this->DataPattern  =QString("ptimepoint_average_contrast.nii");
   this->LabelPattern =QString("pndtimepoint_average_labels.nii");
-
-
-
+  this->MSProcessLoadOrder << "_Rss" << "_R" << "_ss" << "";
+  this->ContrastLoadOrder << "FLAIR" << "T2" ;
+  this->MSGender="Female";
+  this->CenterVolumeOnLoad=true;
 
   // using this mrml to initalize the 3d views for now, and then set to the first gallery setup.
   QString out_path = DataPath+"/DoubleBlank.mrml";
@@ -235,6 +259,8 @@ void qSlicerGalleryControlModuleWidget::setup()
   connect(d->setMultiContrastLayoutButton, SIGNAL(clicked()), SLOT(SetMultiContrastLayout()));
   connect(d->setOrthogonalLayoutButton, SIGNAL(clicked()), SLOT(SetOrthogonalLayout()));
   connect(d->setDual3DLayoutButton, SIGNAL(clicked()), SLOT(SetDual3DLayout()));
+  connect(d->setMSSingleLayoutButton, SIGNAL(clicked()), SLOT(SetMSSingleLayout()));
+  connect(d->setMSDualLayoutButton, SIGNAL(clicked()), SLOT(SetMSDualLayout()));
   connect(d->setMSComparisonLayoutButton, SIGNAL(clicked()), SLOT(SetMSComparisonLayout()));
   connect(d->GallerySelectionComboBox,SIGNAL(currentIndexChanged(int)),SLOT(ChangeGallery())); 
 
@@ -249,19 +275,38 @@ void qSlicerGalleryControlModuleWidget::setup()
   //this has to happen after we've changed the combobox index or called change gallery
   this->GalleryName = d->GallerySelectionComboBox->currentText();
   this->Superclass::setup();
+//  this->ChangeGallery(); //this cannot work and i dont know why
+}
+
+
+QString qSlicerGalleryControlModuleWidget::LookupMS(QString  age, QString gender) 
+{ 
+//  Q_D(qSlicerGalleryControlModuleWidget);
+  this->PrintText("Age:"+age+" Gender:"+gender);
+  if (age=="34"&&gender=="Female") 
+    {
+    return "MS001";
+    }
+  if (age=="33"&&gender=="Female")
+    {
+    return "MS002";
+    }
+  age=gender;
+  return "MS002"; 
+}
+
+bool qSlicerGalleryControlModuleWidget::fexists(const char *filename)
+{
+  ifstream ifile(filename);
+  return ifile;
 }
 
 QString qSlicerGalleryControlModuleWidget::LookupControl(QString  age, bool match_gender) 
 { 
-  Q_D(qSlicerGalleryControlModuleWidget);
-
-  return "Control001"; 
-}
-QString qSlicerGalleryControlModuleWidget::LookupMS(QString  age, QString gender) 
-{ 
-  Q_D(qSlicerGalleryControlModuleWidget);
-
-  return "MS001"; 
+//  Q_D(qSlicerGalleryControlModuleWidget);
+  age="";
+  match_gender=false;
+  return "Control002";
 }
 void qSlicerGalleryControlModuleWidget::ChangeGallery()
 {// set the relevent data paths and pattern for each gallery
@@ -271,36 +316,36 @@ void qSlicerGalleryControlModuleWidget::ChangeGallery()
   this->GalleryName = d->GallerySelectionComboBox->currentText();
   d->GallerySelectionStack->setCurrentIndex(d->GallerySelectionComboBox->currentIndex());  
   // assign the index of the selection box to the widget stack
+  this->ClearCheckboxes();//doesnt clear the ui, just the settings behind the scene the ui connects with, this will let us use the same timepoint and contrast array for any library.
   if(this->GalleryName=="Rat Development Atlas")
     {//Rat Development Atlas
-    this->DataPath=QString("/ratdevatlas");
-    this->LabelPath=QString(DataPath+"/labels/completed/completed_good_header/nii/");
+    this->DataPath=QString("/ratdevatlas/timepoint/average/");
+    this->LabelPath=QString("/ratdevatlas/labels/completed/completed_good_header/nii/");
     //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
     //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
     this->DataPattern  =QString("ptimepoint_average_contrast.nii");
     this->LabelPattern =QString("pndtimepoint_average_labels.nii");
+    this->CenterVolumeOnLoad=true;
     }
   else if (this->GalleryName=="Multiple Sclerosis")
     {//Multiple Sclerosis
 
     this->DataPath=QString("/MS_Library/ptypepid/");
     this->LabelPath=QString(DataPath);
-    this->MSGender="female";
-    //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
-    //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
     // ptype is patient type, MS or CONTROL, 
     // pid is number, might modifiy to just have pid in future contining the ptype
-    // pstatus is processin status, nothing, _ss_ or _Rss_, 
-    // contrast is FLAIR T2 ADC FA L1 L2 L3 RD
-    
-    this->DataPattern  =QString("ptypepidpstatuscontrast.hdr");
+    // pstatus is processin status, nothing, _R, _ss or _Rss, 
+    // contrast is MR ADC FA L1 L2 L3 RD
+    //            MR is loading preference Flair/t2, etc
+    this->DataPattern  =QString("ptypepidpstatus_contrast.hdr");
     this->LabelPattern =QString("ptypepid_regtype_regsub.hdr"); 
+    this->MSGender="Female";
+    this->CenterVolumeOnLoad=true;
     }
   else
     {
     this->PrintText("Cannout understand gallery selection, there must be a typo or something.");
     }
-  this->ClearCheckboxes();//doesnt clear the ui, just the settings behind the scene the ui connects with, this will let us use the same timepoint and contrast array for any library.
   this->SetLayout();
   return;
 }
@@ -380,6 +425,42 @@ void qSlicerGalleryControlModuleWidget::SetDual3DLayout()
   this->SceneNodes=this->SetLayout();
   return;
 }
+void qSlicerGalleryControlModuleWidget::SetMSSingleLayout()
+{
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(true);
+  this->PrintMethod(QString("MSSingle"));
+  this->Layout=QString("MSSingle");
+  this->GalleryTimepoints=1;
+  this->GalleryContrasts=1;
+  this->GalleryOrientations=1;
+  this->Gallery2DViews=1;
+  this->Gallery3DViews=0;
+
+  this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
+  return ;
+}
+void qSlicerGalleryControlModuleWidget::SetMSDualLayout()
+{
+  Q_D(qSlicerGalleryControlModuleWidget);
+  d->DataSelectionGroupBox->setCollapsed(false);
+  d->orientationComboBox->setEnabled(true);
+  this->PrintMethod(QString("MSDual"));
+  this->Layout=QString("MSDual");
+  this->GalleryTimepoints=1;
+  this->GalleryContrasts=2;
+  this->GalleryOrientations=1;
+  this->Gallery2DViews=2;
+  this->Gallery3DViews=0;
+
+  this->PrintMethod("Setting layout" +Layout +"t="+QString::number(this->GalleryTimepoints) + "c=" +QString::number(this->GalleryContrasts));
+//  this->SceneNodes=this->SetLayout(this->Layout); 
+  this->SceneNodes=this->SetLayout();
+  return ;
+}
 void qSlicerGalleryControlModuleWidget::SetMSComparisonLayout()
 {
   Q_D(qSlicerGalleryControlModuleWidget);
@@ -435,7 +516,7 @@ void qSlicerGalleryControlModuleWidget::SetCheckBox()
 
 void qSlicerGalleryControlModuleWidget::OrientationTest() 
 {
-  QString orientation="Coronal"; // this could be axial or sagittal. it gets set by a qt qui setting in my production code
+  QString orientation="Axial"; // this could be axial or sagittal. it gets set by a qt qui setting in my production code
   QStringList sceneNodes;
   sceneNodes << "Red"
              << "Yellow"
@@ -488,7 +569,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
   QList <qSlicerIO::IOProperties> unloadedFiles; //container for the parameters of unloadedfiles. 
   //DataPath
   //LabelPath
-  //DataPattern (replace timeptint with numbers and contrast with abreviation)
+  //DataPattern (replace timepoint with numbers and contrast with abreviation)
   //LabelPattern(replace timepoint with numbers)
 
   ////
@@ -517,73 +598,185 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
     {
     for (int t=0;t<timepointList.size(); t++) 
       {
+      qSlicerIO::IOProperties tParams; //temp params 
       // add data to file list
       imageFile=DataPattern;
       if(this->GalleryName=="Rat Development Atlas") 
         {
         imageFile.replace("timepoint",timepointList[t]);
         imageFile.replace("contrast",contrastList[c]);
-//      imageFileList << imageFile;
-      //confusingly DataPath is root to data directories
-        imagePath = DataPath+"/"+timepointList[t]+"/average/"+imageFile;
+        //confusingly DataPath is root to data directories
+        imagePath = DataPath+imageFile;
+        imagePath.replace("timepoint",timepointList[t]);
         nodeName=imageFile;
         nodeName.replace(".nii","");
+        tParams["fileName"]       = imagePath;
+        tParams["nodeName"]       = nodeName;
+        tParams["labelmap"]       = false;
+        tParams["center"]         = this->CenterVolumeOnLoad;
+        tParams["autoWindowLevel"]= false;
+        tParams["fileType"]="VolumeFile";
+        labelFile=LabelPattern;
+        labelFile.replace("timepoint",timepointList[t]);
+        //confusingly LabelPath is root to label root
+        labelPath = LabelPath+labelFile;
+        labelNode=labelFile;
+        labelNode.replace(".nii","");
+        tParams["labelNode"]      =labelNode; //will end up as duplicate of nodeName in the labelProperties entries, but this is easier.
+        imageProperties << tParams;
+        this->PrintText("imageProperties << "+imageFile);
+        this->PrintText("Added volume to load list:"+imagePath);
+        if( LoadLabels )
+          {
+          nodeName                   = labelNode;
+          tParams["fileName"]        = labelPath;
+          tParams["nodeName"]        = nodeName;
+          tParams["labelmap"]        = true;     
+          tParams["center"]          = this->CenterVolumeOnLoad;
+          tParams["autoWindowLevel"] = false;
+          labelProperties << tParams;
+          this->PrintText("labelProperties << "+labelFile);
+          this->PrintText("Added labels to load list:"+labelPath);
+          }
         }
       else if ( this->GalleryName=="Multiple Sclerosis") 
-        {
-        QString patient=this->LookupMS(timepointList[t],MSGender);
-        QString control=this->LookupControl(patient,0);
-        imageFile.replace("timepoint",timepointList[t]);
-        imageFile.replace("contrast",contrastList[c]);
-        this->PrintText("MS not finished");
-        return;
-//      imageFileList << imageFile;
-      //confusingly DataPath is root to data directories
-        imagePath = DataPath+"/"+timepointList[t]+"/average/"+imageFile;
-        nodeName=imageFile;
-        nodeName.replace(".hdr","");
+        // diseasemodel data, must load 2 datasets, with an ifcheck load labels. go through process twice once for patient and once for control
+        {//imageFile=DataPattern; //set on start here.
+        QString patient = this->LookupMS(timepointList[t],MSGender);//returns MS001 for now
+        //eventually should migrate to lookupDiseaseModelData
+        QString control = this->LookupControl(patient,0);           //returns Control001 for now
+        QStringList pList;
+        pList << patient << control;
+        //leaves us with /MS_Library/MS001/MS001pstatuspcontrast.hdr 
+        //must preferentially load pstatus, then pcontrast if contrast is MR
+        QString tFile;
+        QString tPath;//=imagePath;
+        QString rtype="LDDMM";
+        QString regsub="WMPM_II";
+        //checks for data
+        for (int pa=0;pa<pList.size();pa++) 
+          {
+          patient=pList[pa];
+          imageFile=DataPattern;
+          imageFile.replace("ptypepid",patient);
+          imagePath = DataPath+imageFile;
+          imagePath.replace("ptypepid",patient);
+          for (int po=0;po<MSProcessLoadOrder.size();po++) 
+            {//check each process order, using the conrast as is, 
+            tFile=imageFile;
+            tPath=imagePath;
+            tFile.replace("pstatus",MSProcessLoadOrder[po]);
+            tPath.replace("pstatus",MSProcessLoadOrder[po]);
+            tFile.replace("contrast",contrastList[c]);
+            tPath.replace("contrast",contrastList[c]);
+            this->PrintText("Testing "+tPath);
+            if(fexists(tPath.toStdString().c_str()) ) 
+              {
+              imageFile=tFile;
+              imagePath=tPath;
+              po=MSProcessLoadOrder.size();
+              this->PrintText("   success");
+              }
+            else
+              {
+              tFile=imageFile;
+              tPath=imagePath;
+              tFile.replace("pstatus",MSProcessLoadOrder[po]);
+              tPath.replace("pstatus",MSProcessLoadOrder[po]);
+              if(contrastList[c]=="MR")
+                {
+                for (int co=0;co<ContrastLoadOrder.size();co++)
+                  {
+                  tFile=imageFile;
+                  tPath=imagePath;
+                  tFile.replace("pstatus",MSProcessLoadOrder[po]);
+                  tPath.replace("pstatus",MSProcessLoadOrder[po]);
+                  tFile.replace("contrast",ContrastLoadOrder[co]);
+                  tPath.replace("contrast",ContrastLoadOrder[co]);
+                  this->PrintText("Testing "+tPath);
+                  if(fexists(tPath.toStdString().c_str()) ) 
+                    {
+                    imageFile=tFile;
+                    imagePath=tPath;
+                    po=MSProcessLoadOrder.size();
+                    co=ContrastLoadOrder.size();
+                    this->PrintText("   success");
+                    }
+                  else
+                    {
+                    this->PrintText("   fail");
+                    }
+                  }
+                }
+              else
+                {
+                tFile.replace("contrast",contrastList[c]);
+                tPath.replace("contrast",contrastList[c]);              
+                if(fexists(tPath.toStdString().c_str()) ) 
+                  {
+                  imageFile=tFile;
+                  imagePath=tPath;
+                  po=MSProcessLoadOrder.size();                
+                  this->PrintText("   success");
+                  }
+                else
+                  {
+                  this->PrintText("   fail");
+                  }
+                }
+              }
+            }
+        
+          // 
+          //confusingly DataPath is root to data directories
+        
+          nodeName=imageFile;
+          nodeName.replace(".hdr","");
+          tParams["fileName"]       = imagePath;
+          tParams["nodeName"]       = nodeName;
+          tParams["labelmap"]       = false;
+          tParams["center"]         = this->CenterVolumeOnLoad;
+          tParams["autoWindowLevel"]= false;
+          tParams["fileType"]="VolumeFile";      
+
+          labelFile=LabelPattern;  
+          labelFile.replace("ptypepid",patient);
+          labelFile.replace("regtype",rtype);
+          labelFile.replace("regsub",regsub);
+//        this->LabelPattern =QString("ptypepid_regtype_regsub.hdr"); 
+          labelPath = LabelPath+labelFile;
+          labelPath.replace("ptypepid",patient);
+          labelNode=labelFile;
+          labelNode.replace(".hdr","");
+          tParams["labelNode"]      =labelNode; //will end up as duplicate of nodeName in the labelProperties entries, but this is easier.
+          imageProperties << tParams;
+          this->PrintText("imageProperties << "+imageFile);
+          this->PrintText("Added volume to load list:"+imagePath);
+
+          if( LoadLabels )
+            {
+            nodeName                   = labelNode;
+            tParams["fileName"]        = labelPath;
+            tParams["nodeName"]        = nodeName;
+            tParams["labelmap"]        = true;     
+            tParams["center"]          = this->CenterVolumeOnLoad;    
+            tParams["autoWindowLevel"] = false;
+            labelProperties << tParams;
+            this->PrintText("labelProperties << "+labelFile);
+            this->PrintText("Added labels to load list:"+labelPath);
+            }
+          }
+
         }
       else 
         {
         this->PrintText("Bad or unset GalleryName.");
         return;
         }
-           
-//      imagePathList << imagePath;
 
-      
-      qSlicerIO::IOProperties tParams; //temp params 
-      tParams["fileName"]       = imagePath;
-      tParams["nodeName"]       = nodeName;
-      tParams["labelmap"]       = false;
-      tParams["center"]         = true;
-      tParams["autoWindowLevel"]= false;
-      tParams["fileType"]="VolumeFile";
-      labelFile=LabelPattern;
-      labelFile.replace("timepoint",timepointList[t]);
-//      labelFileList << labelFile;
-      //confusingly LabelPath is root to label root
-      labelPath = LabelPath+"/"+labelFile;
-//      labelPathList << labelPath;      
-      labelNode=labelFile;
-      labelNode.replace(".nii","");
-      tParams["labelNode"]      =labelNode; //will end up as duplicate of nodeName in the labelProperties entries, but this is easier.
-      imageProperties << tParams;
-      this->PrintText("imageProperties << "+imageFile);
-
-      if( LoadLabels )
-        {
-        nodeName                   = labelNode;
-        tParams["fileName"]        = labelPath;
-        tParams["nodeName"]        = nodeName;
-        tParams["labelmap"]        = true;     
-        tParams["center"]          = true;    
-        tParams["autoWindowLevel"] = false;
-        labelProperties << tParams;
-        this->PrintText("labelProperties << "+labelFile);
-        }
-      }
-    }
+     
+      }//timepoint foor loop end
+    }//contrast timepoint loop end.
 
   int snCounter;
   //loop for all images to add only unloaded to load list
@@ -674,7 +867,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       }
     
     //<>//
-    if ( scNode != NULL )  //if we have a composinte node sucessfully downcast
+    if ( scNode != NULL )  //if we have a composinte node sucessfully downcast to assign volumes to
       { //vtkMRMLSliceCompositeNode
       this->PrintText("SliceComposite ready:"+sliceCompositeNodeID);
       if(setSliceOrient) 
@@ -696,11 +889,31 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       //<<.>>//
       if(snCounter<imageProperties.size()) //prevents bad index crash
         {
-        scNode->SetBackgroundVolumeID(this->NodeID(imageProperties[snCounter]["nodeName"].toString())); //load
+        scNode->SetBackgroundVolumeID(this->NodeID(imageProperties[snCounter]["nodeName"].toString())); //set image
         if( LoadLabels )
           { 
-          scNode->SetLabelVolumeID(this->NodeID(labelProperties[snCounter]["nodeName"].toString()));	
-          scNode->SetLabelOpacity(0.25); 
+          scNode->SetLabelVolumeID(this->NodeID(labelProperties[snCounter]["nodeName"].toString()));	//set labels
+          if(GalleryName=="Multiple Sclerosis") //MSSingle" || GalleryName=="MSDual" || GalleryName=="MSComparison" )
+            {
+            scNode->SetLabelOpacity(1.0); 
+              sliceNode->SetUseLabelOutline(true);
+              if (this-> Layout=="MSComparison")
+                {
+                if(SceneNodes[snCounter]=="Red"||SceneNodes[snCounter]=="Green")
+                  {
+                  this->PrintText("turning off labels for this viewer");
+                  scNode->SetLinkedControl(0);
+                  scNode->SetLabelOpacity(0); 
+                  scNode->SetLinkedControl(1);
+                  }
+                }
+
+            }
+          else 
+            {
+            scNode->SetLabelOpacity(0.25); 
+            sliceNode->SetUseLabelOutline(false);
+            }
           } 
         else 
           {
@@ -712,7 +925,7 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
         //ifnodis yellow, 
         if ( SceneNodes[snCounter]=="yellow" ) 
           {//should only run on dual3d
-          scNode->SetForegroundVolumeID(this->NodeID(imageProperties[1]["nodeName"].toString())); //load
+          scNode->SetForegroundVolumeID(this->NodeID(imageProperties[1]["nodeName"].toString())); // set overlay
           scNode->SetForegroundOpacity(0.50);
           }
         }
@@ -732,96 +945,26 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
       } 
     else
       {
-      this->PrintText("Bad view node or not a view node"+viewNodeID);
+      this->PrintText("Bad view node or not a view node:"+viewNodeID);
       }
     }
     
-/*
-  // handle setting orthagonal views to correct orientation
-  if (!setSliceOrient) 
+  if(this->GalleryName=="MSDual") 
     {
-    this->PrintText("\n\n\nOrthogonal set.\n\n\n");
-//    for (  snCounter=0;snCounter<SceneNodes.size();snCounter++) //this code doesnt work with both 2d and 3d views in SceneNodes
-    for (  snCounter=0;snCounter<Gallery2DViews;snCounter++) 
-      {
-      int t=0; 
-      int c=0;
-      orientation=orthogonalOrientations[snCounter];
-      QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
-      QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
-      imageFile=DataPattern;
-      imageFile.replace("timepoint",timepointList[t]);
-      imageFile.replace("contrast",contrastList[c]);
-      imageFile.replace(".nii","");
-      nodeName=imageFile;
-      nodeName.replace(".nii","");
-      imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
-      this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
-      vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
-      vtkMRMLSliceNode *sliceNode;
-      sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
-      vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
-      vtkMRMLSliceCompositeNode *scNode;
-      scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
-      sliceNode->SetOrientation(orientation.toLatin1());
-      scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
-      if( LoadLabels )
-        { 
-        labelFile=LabelPattern;
-        labelFile.replace("timepoint",timepointList[t]);
-        nodeName=labelFile;
-        nodeName.replace(".nii","");
-        labelFile=LabelPath+"/"+labelFile;
-        scNode->SetLabelVolumeID(this->NodeID(nodeName));	
-//        scNode->vtkSetMacro(SetLabelMapOpacity(0.10));
-        scNode->SetLabelOpacity(0.25);
-        } 
-      else 
-        {
-        scNode->SetLabelVolumeID(NULL);
-        }
-      }
-    }
-*/
-/*  //  if (GalleryTimepoints*GalleryViewers<Gallery2DViews) 
-  if(this->Layout=="Dual3D")
-    {//should only run on dual3d view. lets just hardcode that.
-    int t=0; 
-    int c=0;
-    orientation=orthogonalOrientations[snCounter];
-    QString sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
+    this->PrintText("Fixing MSDual red slice");    
+    QString sliceNodeID=QString("vtkMRMLSliceNode")+"Red";
     QString sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
     vtkMRMLNode      *sn        = currentScene->GetNodeByID(sliceNodeID.toStdString());
-    vtkMRMLSliceNode *sliceNode;
+    vtkMRMLSliceNode *sliceNode = NULL;
     sliceNode = vtkMRMLSliceNode::SafeDownCast(sn); //SliceNode
+    
     vtkMRMLNode      *scn       = currentScene->GetNodeByID(sliceCompositeNodeID.toStdString());
-
-    imageFile=DataPattern;
-    imageFile.replace("timepoint",timepointList[t]);
-    imageFile.replace("contrast",contrastList[c]);
-    imageFile.replace(".nii","");
-     nodeName=imageFile;    
-    imageFile=DataPath+"/"+timepointList[t]+"/average/"+imageFile;
-    this->PrintText(sliceCompositeNodeID+"<-"+nodeName+" "+sliceNodeID);
-
-    vtkMRMLSliceCompositeNode *scNode;
+    vtkMRMLSliceCompositeNode *scNode = NULL;
     scNode = vtkMRMLSliceCompositeNode::SafeDownCast(scn); //Composite
-    sliceNode->SetOrientation(orientation.toLatin1());
-    scNode->SetBackgroundVolumeID(this->NodeID(nodeName)); //load
-    t=t+1;
-//    orientation=orthogonalOrientations[snCounter];
-    sliceNodeID=QString("vtkMRMLSliceNode")+SceneNodes[snCounter];
-    sliceCompositeNodeID=QString("vtkMRMLSliceCompositeNode")+SceneNodes[snCounter];
+    scNode->SetBackgroundVolumeID(NULL); //set image
 
-    imageFile=DataPattern;
-    imageFile.replace("timepoint",timepointList[t]);
-    imageFile.replace("contrast",contrastList[c]);
-    imageFile.replace(".nii","");
-    nodeName=imageFile;    
-    scNode->SetForegroundVolumeID(this->NodeID(nodeName)); //load
-    sliceNode->SetOrientation(orientation.toLatin1());
     }
-*/
+
   return;
 }
 
@@ -973,14 +1116,45 @@ void qSlicerGalleryControlModuleWidget::ClearCheckboxes()
   this->PrintMethod(QString("ClearCheckboxes"));
   Q_D(qSlicerGalleryControlModuleWidget);  
   int elements=0;
-  elements=(sizeof(Timepoints)/sizeof(bool));
-  for(int i=0;i<elements;i++) {
-    this->Timepoints[i]=0;
-  }
-  elements=(sizeof(Contrasts)/sizeof(bool));
-  for(int i=0;i<elements;i++) {
-    Contrasts[i]=0;
-  }
+  elements=(sizeof(this->Timepoints)/sizeof(bool));
+  for(int i=0;i<elements;i++) 
+    {
+    this->Timepoints[i]=false;
+    }
+  elements=(sizeof(this->Contrasts)/sizeof(bool));
+  for(int i=0;i<elements;i++) 
+    {
+    this->Contrasts[i]=false;
+    }
+
+  d->c_ad       ->setChecked(false);
+  d->c_adc      ->setChecked(false);
+  d->c_b0       ->setChecked(false);
+  d->c_dwi      ->setChecked(false);
+  d->c_fa       ->setChecked(false);
+  d->c_fa_color ->setChecked(false);
+  d->c_freq     ->setChecked(false);
+  d->c_gre      ->setChecked(false);
+  d->c_rd       ->setChecked(false);
+  d->MSC_ADC    ->setChecked(false);
+  d->MSC_FA     ->setChecked(false);
+  d->MSC_MR     ->setChecked(false);
+  d->MSC_RD     ->setChecked(false);
+  
+  d->t_00->setChecked(false);
+  d->t_02->setChecked(false);
+  d->t_04->setChecked(false);
+  d->t_08->setChecked(false);
+  d->t_12->setChecked(false);
+  d->t_18->setChecked(false);
+  d->t_24->setChecked(false);
+  d->t_33->setChecked(false);
+  d->t_34->setChecked(false);
+  d->t_40->setChecked(false);
+  d->t_53->setChecked(false);
+  d->t_54->setChecked(false);
+  d->t_80->setChecked(false);
+
   return;
 }
 
@@ -1064,18 +1238,19 @@ QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
 		<< ""
 		<< ""
     ;
-  this->Contrasts[0]=d->c_ad  ->isChecked();
-  this->Contrasts[1]=d->c_adc ->isChecked();
-  this->Contrasts[2]=d->c_b0  ->isChecked();
-  this->Contrasts[3]=d->c_dwi ->isChecked();
-  this->Contrasts[4]=d->c_fa  ->isChecked();
+  
+  this->Contrasts[0]=d->c_ad       ->isChecked();
+  this->Contrasts[1]=d->c_adc      ->isChecked();
+  this->Contrasts[2]=d->c_b0       ->isChecked();
+  this->Contrasts[3]=d->c_dwi      ->isChecked();
+  this->Contrasts[4]=d->c_fa       ->isChecked();
   this->Contrasts[5]=d->c_fa_color ->isChecked();
-  this->Contrasts[6]=d->c_freq->isChecked();
-  this->Contrasts[7]=d->c_gre ->isChecked();
-  this->Contrasts[8]=d->c_rd  ->isChecked();
-  //  this->Contrasts[8]=d->c_->isChecked();
-  //  this->Contrasts[9]=d->c_->isChecked();
-
+  this->Contrasts[6]=d->c_freq     ->isChecked();
+  this->Contrasts[7]=d->c_gre      ->isChecked();
+  this->Contrasts[8]=d->c_rd       ->isChecked();
+  //  this->Contrasts[8]=d->c_     ->isChecked();
+  //  this->Contrasts[9]=d->c_     ->isChecked();
+  
   //MS_LibraraySettings,(could do this better)
   if (this->GalleryName=="Multiple Sclerosis") 
     {
@@ -1085,9 +1260,10 @@ QStringList qSlicerGalleryControlModuleWidget::GetContrasts()
     this->Contrasts[8]=d->MSC_RD  ->isChecked();
     all_contrasts[1]="ADC";
     all_contrasts[4]="FA";
-    all_contrasts[7]="FLAIR";
+    all_contrasts[7]="MR";
     all_contrasts[8]="RD";
     }
+  
 //  QString contrast_string("");
   int contrasts_found=0;
   int elements=(sizeof(Contrasts)/sizeof(bool));
@@ -1118,7 +1294,7 @@ void qSlicerGalleryControlModuleWidget::SetViewNodeProperties(QString nodeName)
   currentScene->InitTraversal();
   vtkMRMLNode *sn = currentScene->GetNodeByID(nodeName.toStdString());
   vtkMRMLViewNode *vNode = NULL;
-//  qSlicerIO::IOProperties *viewNodeProps;
+  //qSlicerIO::IOProperties *viewNodeProps;
   
   if ( sn != NULL ) 
     {    
@@ -1128,37 +1304,37 @@ void qSlicerGalleryControlModuleWidget::SetViewNodeProperties(QString nodeName)
       {
       this->PrintText("SET PROPERTIES FOR VIEWER HERE");
      //do work
-      //viewNodeProps->id("vtkMRMLViewNode1");
-      //viewNodeProps->name(View1);
-      //viewNodeProps->hideFromEditors(false);
-      //viewNodeProps->selectable(true);
-      //viewNodeProps->selected(false);
-      //viewNodeProps->attributes(MappedInLayout:1);
-      //viewNodeProps->layoutLabel(1);
-      //viewNodeProps->layoutName(1);
-      //viewNodeProps->active(false);
-      //viewNodeProps->visibility(false);
-//      double bg1[3]={0.756863, 0.764706, 0.909804};
-      //      viewNodeProps->SetBackgroundColor(bg1);
-//      double bg2[3]={0.454902, 0.470588, 0.745098};
-      //      viewNodeProps->SetBackgroundColor2(bg2);
-      //      viewNodeProps->SetFieldOfView(200);
-      //      viewNodeProps->SetLetterSize(0.05);
-      //      viewNodeProps->SetBoxVisible(true);
-//      viewNodeProps->SetFiducialsVisible(true);
-//      viewNodeProps->SetFiducialLabelsVisible(true);
-//      viewNodeProps->SetAxisLabelsVisible(true);
-//      viewNodeProps->SetAxisLabelsCameraDependent(true);
-//      viewNodeProps->SetAnimationMode("Off");
-//      viewNodeProps->SetNviewAxisMode("LookFrom");
-//      viewNodeProps->SetSpinDegrees(2);
-//      viewNodeProps->SetSpinMs(5);
-//      viewNodeProps->SetSpinDirection("YawLeft");
-//      viewNodeProps->SetRotateDegrees(5);
-//      viewNodeProps->SetRockLength(200);
-//      viewNodeProps->SetRockCount(0);
-//      viewNodeProps->SetStereoType("NoStereo");
-//      viewNodeProps->SetRenderMode("Perspective");
+      //vNode->id("vtkMRMLViewNode1");
+      //vNode->name(View1);
+      //vNode->hideFromEditors(false);
+      //vNode->selectable(true);
+      //vNode->selected(false);
+      //vNode->attributes(MappedInLayout:1);
+      //vNode->layoutLabel(1);
+      //vNode->layoutName(1);
+      //vNode->active(false);
+      //vNode->visibility(false);
+      double bg1[3]={0.0, 0.0, 0.0};//{0.756863, 0.764706, 0.909804};
+      vNode->SetBackgroundColor(bg1);
+      double bg2[3]={0.0, 0.0, 0.0};//{0.454902, 0.470588, 0.745098};
+      vNode->SetBackgroundColor2(bg2);
+      vNode->SetFieldOfView(45);
+      //      vNode->SetLetterSize(0.05);
+      vNode->SetBoxVisible(false);
+//      vNode->SetFiducialsVisible(true);
+//      vNode->SetFiducialLabelsVisible(true);
+      vNode->SetAxisLabelsVisible(false);
+//      vNode->SetAxisLabelsCameraDependent(true);
+//      vNode->SetAnimationMode("Off");
+//      vNode->SetNviewAxisMode("LookFrom");
+//      vNode->SetSpinDegrees(2);
+//      vNode->SetSpinMs(5);
+//      vNode->SetSpinDirection("YawLeft");
+//      vNode->SetRotateDegrees(5);
+//      vNode->SetRockLength(200);
+//      vNode->SetRockCount(0);
+//      vNode->SetStereoType("NoStereo");
+//      vNode->SetRenderMode("Perspective");
 
 
 
@@ -1310,13 +1486,77 @@ QStringList qSlicerGalleryControlModuleWidget::SetLayout()  //QString layout
     //sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutInitialView);
     sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView);
     } 
-  else if ( this->Layout=="MultiContrast"|| this->Layout=="MSComparison") 
+  else if ( this->Layout=="MSSingle")
     {
     //Two over Two
+    sceneNodes << "Red";
+    this->PrintText("Layout should have 1 volumes");
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutOneUpRedSliceView);
+    } 
+  else if ( this->Layout=="MSDual") 
+    {
+    //Two over Two loadorder for disease is patient, control, contrast 1, contrast2
+//     sceneNodes << "Compare2"
+//                << "Red"
+//                << "Compare1";
+//     //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
+//     this->PrintText("Layout should have 2 volumes");
+   
+// //    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutCompareView);
+// //    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);//doeesnt help the trouble...
+// //    sceneLayoutNode->SetNumberOfCompareViewRows(2);            //set to 2 viewers.
+// //    sceneLayoutNode->SetNumberOfCompareViewLightboxColumns(1); //set to 1 column each
+// //    sceneLayoutNode->SetMainPanelSize(5);//this didnt clear main panel
+// //    sceneLayoutNode->SetSecondaryPanelSize(1200); //this didnt do it either
+// //    sceneLayoutNode->SetTopPanelVisibility(0);    //there is no top panel macro?
+// //    sceneLayoutNode->SetBottomPanelVisibility(0);
+// //    sceneLayoutNode->SetGUIPanelVisibility(false);
+// //    sceneLayoutNode->SetCollapseSliceControllers(1); //nope
+// //    sceneLayoutNode->SetCollapseSliceControllers(0); //nope
+
+
+// //    sceneLayoutNode->
+//     int spSize=sceneLayoutNode->GetSecondaryPanelSize();
+//     int mpSize=sceneLayoutNode->GetMainPanelSize();
+//     int gV=sceneLayoutNode->GetGUIPanelVisibility();
+//     int bV=sceneLayoutNode->GetBottomPanelVisibility();
+// //    int mV=sceneLayoutNode->GetMainPanelVisibility();
+//     this->PrintText("secondary size:"+QString::number(spSize)+
+//                     " main size:"+QString::number(mpSize)+
+//                     " Gui vis:"+QString::number(gV)+
+//                     " bottom vis:"+QString::number(bV));//+
+// //                    " main vis:"+QString::number(mV)+".";
+//     sceneLayoutNode->SetBottomPanelVisibility(0);   // nope.
+//     sceneLayoutNode->SetMainPanelSize(710);         // nope.
+//     sceneLayoutNode->SetSecondaryPanelSize(90);     // percentage 0-100?99? nope
+    sceneNodes << "Green"
+               << ""//"Yellow"
+               << "Red";
+    
+    sceneLayoutNode->AddLayoutDescription(vtkMRMLLayoutNode::SlicerLayoutUserView,twoSliceView);
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutUserView);
+////    this->ConventionalLayoutRootElement = vtkMRMLLayoutNode::ParseLayout(conventionalView);
+//    sceneLayoutNode->ParseLayout(twoSliceView);
+
+    } 
+  else if ( this->Layout=="MSComparison") 
+    {
+    //Two over Two 
+    sceneNodes << "Yellow"
+               << "Slice1"
+               << "Red"
+               << "Green";
+    //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
+    this->PrintText("Layout should have 4 volumes");
+    sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
+    } 
+  else if ( this->Layout=="MultiContrast") 
+    {
+    //Two over Two 
     sceneNodes << "Red"
                << "Yellow"
-               << "Green"
-               << "Slice1";
+               << "Slice1"
+               << "Green";
     //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
     this->PrintText("Layout should have 4 volumes");
     sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutTwoOverTwoView);
@@ -1344,7 +1584,6 @@ QStringList qSlicerGalleryControlModuleWidget::SetLayout()  //QString layout
     //vtkMRMLLayoutNode::SlicerLayoutFourUpView
     sceneLayoutNode->SetViewArrangement(vtkMRMLLayoutNode::SlicerLayoutDual3DView);
     this->PrintText("Layout should have 2 volumes");
-    
     }
   else 
     {
