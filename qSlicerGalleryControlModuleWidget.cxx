@@ -54,7 +54,7 @@
 //# include "tclap/CmdLine.h"
 
 
-#include  <Modules/Loadable/Volumes/qSlicerVolumesIO.h>
+//#include  <Modules/Loadable/Volumes/qSlicerVolumesIO.h>
 
 // vtkSlicerLogic includes
 #include "vtkSlicerTransformLogic.h"

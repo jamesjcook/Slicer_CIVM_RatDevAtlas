@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.9)
 
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
@@ -10,6 +10,15 @@ if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/GalleryControl/Resources/Icons/GalleryControl.png?revision=19437&view=co")
   set(EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/4/42/Slicer-r19441-GalleryControl-screenshot.png")
 endif()
+find_package(Slicer COMPONENTS ConfigurePrerequisites)
+
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+endif()
+
+project(GalleryControl)
 
 #-----------------------------------------------------------------------------
 set(MODULE_NAME GalleryControl)
@@ -17,11 +26,7 @@ set(MODULE_TITLE ${MODULE_NAME})
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
-#-----------------------------------------------------------------------------
-if(NOT Slicer_SOURCE_DIR)
-  find_package(Slicer REQUIRED)
-  include(${Slicer_USE_FILE})
-endif()
+
 
 #-----------------------------------------------------------------------------
 add_subdirectory(Logic)
