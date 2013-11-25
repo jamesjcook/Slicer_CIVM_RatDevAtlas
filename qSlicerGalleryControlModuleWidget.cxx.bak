@@ -186,14 +186,14 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->GalleryTimepoints=0;
   this->GalleryContrasts=0;
   this->GalleryOrientations=0;
-  // this->LoadLabels=false;
+  this->LoadLabels=false;
 
 
   /* Load data paths */
   /* hardcode for now*/
   /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
   /* labels are at /DataPath/labels/completed/completed_good_header/nii/           */
-  this->DataRoot=QString("/ratdevatlas");
+  
   this->DataPath=QString("/ratdevatlas/timepoint/average/");
   this->LabelPath=QString("/ratdevatlas/labels/completed/completed_good_header/nii/");
   //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
@@ -206,17 +206,10 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->CenterVolumeOnLoad=true;
 
   // using this mrml to initalize the 3d views for now, and then set to the first gallery setup.
-  QString out_path = DataRoot+"/DoubleBlank.mrml";
-  // example for replacment to fix the blank not loading.
-//   imageFile.replace("timepoint",timepointList[t]);
-//   imageFile.replace("contrast",contrastList[c]);
-//   //confusingly DataPath is root to data directories
-//   imagePath = DataPath+imageFile;
-//   imagePath.replace("timepoint",timepointList[t]);
-
+  QString out_path = DataPath+"/DoubleBlank.mrml";
   qSlicerApplication * app = qSlicerApplication::application();
   app->ioManager()->loadScene(out_path);
-  out_path = DataRoot+"/Blank.mrml";
+  out_path = DataPath+"/Blank.mrml";
   app->ioManager()->loadScene(out_path);  
 
 
@@ -229,7 +222,7 @@ void qSlicerGalleryControlModuleWidget::setup()
       this, SLOT(SetMultiContastLayout()));*/
   QSignalMapper* signalMapper;
   
-  //  signalMapper = new QSignalMapper(this);
+  signalMapper = new QSignalMapper(this);
 
   /*  signalMapper = new QSignalMapper(this);
       signalMapper->setMapping(taxFileButton, QString("taxfile.txt"));
@@ -240,8 +233,9 @@ void qSlicerGalleryControlModuleWidget::setup()
       signalMapper, SLOT (map()));
       connect(accountFileButton, SIGNAL(clicked()),
       signalMapper, SLOT (map()));
-;      connect(reportFileButton, SIGNAL(clicked()),
-      signalMapper, SLOT (map()));*/
+      connect(reportFileButton, SIGNAL(clicked()),
+      signalMapper, SLOT (map()));
+  */
   
   //  this works so long as we dont try to connect in QtDesigner
   /*  connect(d->t_02, SIGNAL(toggled(bool)), SLOT(SetCheckBox()));
@@ -256,7 +250,8 @@ void qSlicerGalleryControlModuleWidget::setup()
 
   /*  if (d->t_00->isChecked()) {; //just test setting of the checkbox
     PrintMethod(QString("checktrue"));
-    }*/
+    }
+  */
   d->GallerySelectionComboBox->setCurrentIndex(0);
   d->GallerySelectionStack->setCurrentIndex(d->GallerySelectionComboBox->currentIndex());
   d->orientationComboBox->setEnabled(false);
@@ -903,17 +898,17 @@ void qSlicerGalleryControlModuleWidget::BuildScene()
           if(GalleryName=="Multiple Sclerosis") //MSSingle" || GalleryName=="MSDual" || GalleryName=="MSComparison" )
             {
             scNode->SetLabelOpacity(1.0); 
-            sliceNode->SetUseLabelOutline(true);
-            if (this-> Layout=="MSComparison")
-              {
-              if(SceneNodes[snCounter]=="Red"||SceneNodes[snCounter]=="Green")
+              sliceNode->SetUseLabelOutline(true);
+              if (this-> Layout=="MSComparison")
                 {
-                this->PrintText("turning off labels for this viewer");
-                scNode->SetLinkedControl(0);
-                scNode->SetLabelOpacity(0); 
-                scNode->SetLinkedControl(1);
+                if(SceneNodes[snCounter]=="Red"||SceneNodes[snCounter]=="Green")
+                  {
+                  this->PrintText("turning off labels for this viewer");
+                  scNode->SetLinkedControl(0);
+                  scNode->SetLabelOpacity(0); 
+                  scNode->SetLinkedControl(1);
+                  }
                 }
-              }
 
             }
           else 
@@ -1550,7 +1545,7 @@ QStringList qSlicerGalleryControlModuleWidget::SetLayout()  //QString layout
     {
     //Two over Two 
     sceneNodes << "Yellow"
-               << "Slice4"
+               << "Slice1"
                << "Red"
                << "Green";
     //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
@@ -1562,7 +1557,7 @@ QStringList qSlicerGalleryControlModuleWidget::SetLayout()  //QString layout
     //Two over Two 
     sceneNodes << "Red"
                << "Yellow"
-               << "Slice4"
+               << "Slice1"
                << "Green";
     //vtkMRMLLayoutNode::SlicerLayoutThreeOverThreeView
     this->PrintText("Layout should have 4 volumes");

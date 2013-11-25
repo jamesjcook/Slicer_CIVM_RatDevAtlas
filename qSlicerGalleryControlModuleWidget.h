@@ -73,6 +73,8 @@ public:
   QString Layout;         //String name of the layout to use.
   QString DataPath;       //path to data set in the setup function, will have to be 
                           //intelligently modified for the demo version. perhaps we'll just use system links for now.
+  QString DataRoot;       //path to data root folder in the setup function, will have to be 
+                          //intelligently modified for the demo version. perhaps we'll just use system links for now.
   QString LabelPath;      //see datapath.
   QString DataPattern;    //pattern for data file to have parts replacd wit actual contrast and timepoint information. 
   QString LabelPattern;   //see datapattern
@@ -80,23 +82,23 @@ public:
   void ClearCheckboxes();  // clears timepoints and contrast bool arrays  
   void PrintMethod(QString);//print to console with constant text+message
   void PrintText(QString); //print to console
-  QStringList SetLayout();       //defunct. function to change the layout.
+  QStringList SetLayout();       //defunct?(that needs verification) function to change the layout.
   void ShowNodesInScene(); // defunct. Debug function to print node names in the scene. 
   QStringList MSProcessLoadOrder;//load order for processed data, only used in ms gallery so far.
   QStringList ContrastLoadOrder; // load order for contrast data if there are mutli entries, used in ms data for the MR contrast which ctransaltes to MR=Flair,T2; should fix that code or data to not do this. 
   bool CenterVolumeOnLoad;      // variable to choose when to center on load, might not want that behavior in the future
-  const char * NodeID(QString); //defunct.
+  const char * NodeID(QString); //translates node name to node id
 
 public slots:
   void SetTimeContrastLayout();  //set variables for given layout
   void SetMultiContrastLayout(); //set variables for given layout
   void SetOrthogonalLayout();    //set variables for given layout
   void SetDual3DLayout();        //set variables for given layout
-  void SetMSSingleLayout();      //set variables for given layoutp
+  void SetMSSingleLayout();      //set variables for given layout
   void SetMSDualLayout();        //set variables for given layout
   void SetMSComparisonLayout();  //set variables for given layout
   void SetLabels();              
-  void CallPerlScriptAndLoadMRML(); //only function w hich relied onc alling the crummy piece of substitution perl. 
+  void CallPerlScriptAndLoadMRML(); //only function which relied onc alling the crummy piece of substitution perl. 
   void BuildScene();             //sets up mrml nodes loads data
   void OrientationTest();        //defunct.
   void SetCheckBox();            //defunct.
