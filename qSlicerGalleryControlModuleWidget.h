@@ -88,6 +88,7 @@ public:
   QStringList ContrastLoadOrder; // load order for contrast data if there are mutli entries, used in ms data for the MR contrast which ctransaltes to MR=Flair,T2; should fix that code or data to not do this. 
   bool CenterVolumeOnLoad;      // variable to choose when to center on load, might not want that behavior in the future
   const char * NodeID(QString); //translates node name to node id
+  QString ps;                 //place to hold the path separator so our module can be multi-platform.
 
 public slots:
   void SetTimeContrastLayout();  //set variables for given layout

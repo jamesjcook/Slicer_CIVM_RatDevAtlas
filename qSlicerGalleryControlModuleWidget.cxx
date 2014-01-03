@@ -180,6 +180,13 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->PrintMethod(QString("setup"));
   Q_D(qSlicerGalleryControlModuleWidget);
   d->setupUi(this);
+#ifdef WIN32 
+  this->ps=('\\');
+  this->DataRoot=QString("L:"+ps+"ratdevatlas");
+#else
+  this->ps=('/');
+  this->DataRoot=QString(""+ps+"ratdevatlas");
+#endif
 
   this->ClearCheckboxes();
   this->Layout=QString("No_Layout");
@@ -193,9 +200,9 @@ void qSlicerGalleryControlModuleWidget::setup()
   /* hardcode for now*/
   /* data is at /DataPath/{timepoint}/average/p{timepoint}_average_{contrast}.nii  */
   /* labels are at /DataPath/labels/completed/completed_good_header/nii/           */
-  this->DataRoot=QString("/ratdevatlas");
-  this->DataPath=QString("/ratdevatlas/timepoint/average/");
-  this->LabelPath=QString("/ratdevatlas/labels/completed/completed_good_header/nii/");
+  //this->DataRoot=QString(""+ps+"ratdevatlas");
+  this->DataPath=QString(""+DataRoot+ps+"timepoint"+ps+"average"+ps+"");
+  this->LabelPath=QString(""+DataRoot+ps+"labels"+ps+"completed"+ps+"completed_good_header"+ps+"nii"+ps+"");
   //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
   //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
   this->DataPattern  =QString("ptimepoint_average_contrast.nii");
@@ -206,7 +213,7 @@ void qSlicerGalleryControlModuleWidget::setup()
   this->CenterVolumeOnLoad=true;
 
   // using this mrml to initalize the 3d views for now, and then set to the first gallery setup.
-  QString out_path = DataRoot+"/DoubleBlank.mrml";
+  QString out_path = DataRoot+""+ps+"DoubleBlank.mrml";
   // example for replacment to fix the blank not loading.
 //   imageFile.replace("timepoint",timepointList[t]);
 //   imageFile.replace("contrast",contrastList[c]);
@@ -215,9 +222,9 @@ void qSlicerGalleryControlModuleWidget::setup()
 //   imagePath.replace("timepoint",timepointList[t]);
 
   qSlicerApplication * app = qSlicerApplication::application();
-  app->ioManager()->loadScene(out_path);
-  out_path = DataRoot+"/Blank.mrml";
-  app->ioManager()->loadScene(out_path);  
+  app->ioManager()->loadScene(out_path,false);
+  out_path = DataRoot+""+ps+"Blank.mrml";
+  app->ioManager()->loadScene(out_path,false);
 
 
   // these connections were setup in the *.ui file, but that seems to have been broken
@@ -326,8 +333,8 @@ void qSlicerGalleryControlModuleWidget::ChangeGallery()
   this->ClearCheckboxes();//doesnt clear the ui, just the settings behind the scene the ui connects with, this will let us use the same timepoint and contrast array for any library.
   if(this->GalleryName=="Rat Development Atlas")
     {//Rat Development Atlas
-    this->DataPath=QString("/ratdevatlas/timepoint/average/");
-    this->LabelPath=QString("/ratdevatlas/labels/completed/completed_good_header/nii/");
+    this->DataPath=QString(""+DataRoot+ps+"timepoint"+ps+"average"+ps+"");
+    this->LabelPath=QString(""+DataRoot+ps+"labels"+ps+"completed"+ps+"completed_good_header"+ps+"nii"+ps+"");
     //  this->DataPattern  << "p"   << "timepoint" << "_average_" << "contrast" << ".nii";
     //  this->LabelPattern << "pnd" << "timepoint" << "_average_labels.nii";
     this->DataPattern  =QString("ptimepoint_average_contrast.nii");
@@ -337,7 +344,7 @@ void qSlicerGalleryControlModuleWidget::ChangeGallery()
   else if (this->GalleryName=="Multiple Sclerosis")
     {//Multiple Sclerosis
 
-    this->DataPath=QString("/MS_Library/ptypepid/");
+    this->DataPath=QString(""+DataRoot+ps+"MS_Library"+ps+"ptypepid"+ps+"");
     this->LabelPath=QString(DataPath);
     // ptype is patient type, MS or CONTROL, 
     // pid is number, might modifiy to just have pid in future contining the ptype
